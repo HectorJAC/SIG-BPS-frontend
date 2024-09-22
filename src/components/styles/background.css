@@ -1,0 +1,6 @@
+.fondo {
+    background: rgb(2,0,36);
+    background: linear-gradient(0deg, rgb(29, 138, 121) 0%, rgba(66, 198, 46, 0.837) 100%);
+    height: 100vh;
+    overflow-y: auto;
+}
