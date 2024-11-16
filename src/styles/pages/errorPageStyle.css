@@ -1,0 +1,22 @@
+.button-home {
+  margin-bottom: 2rem;
+  width: 10rem;
+  padding-left: 4rem;
+  padding-right: 4rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border: none;
+  border-radius: 9999px;
+  background-image: linear-gradient(to right, #6c757d, #495057);
+  background-image: linear-gradient(to right, #6c757d, #495057);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  :hover {
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    transform: translateY(-0.3rem);
+    transform: scale(1.05);
+  }
+  transition-duration: 0.3s;
+}

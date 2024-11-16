@@ -74,7 +74,7 @@ export const Login = () => {
               <Card className='bg-white my-5 mx-auto' style={{ borderRadius: '1rem', maxWidth: '480px' }}>
                 <Card.Body className='p-5 w-100 d-flex flex-column'>
                   <Image 
-                    src="/logo.jpg" 
+                    src="/logo.png" 
                     alt="SIG-BPS" 
                     className="img-fluid" 
                     style={{ height: '250px', width: '250px' }}

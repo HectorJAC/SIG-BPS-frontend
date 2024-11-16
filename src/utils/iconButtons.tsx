@@ -1,4 +1,4 @@
-import { FaEye } from "react-icons/fa";
+import { FaEye, FaInfoCircle } from "react-icons/fa";
 import { FiEdit } from "react-icons/fi";
 import { MdDelete } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
@@ -22,4 +22,8 @@ export const ActivateIcon = () => {
 
 export const InactiveIcon = () => {
   return <IoMdClose />
+};
+
+export const InfoIcon = () => {
+  return <FaInfoCircle />
 };

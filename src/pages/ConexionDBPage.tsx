@@ -1,48 +1,37 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, InactiveIcon } from "../utils/iconButtons";
+import { ActivateIcon, EditIcon, InactiveIcon, ViewIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
-import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { ConexionDBProps } from "../interfaces/conexionDBInterface";
+import { useNavigate } from "react-router-dom";
+import { ConexionDBModal } from "../components/ConexionDBModal";
+import { useConexionDBStore } from "../store/conexionDBStore";
 
-interface EmpresaProps {
-  id_empresa: number;
-  nombre_empresa: string;
-}
-
-export const ListOfClientsPage = () => {
-  const [users, setUsers] = useState<UsersPaginatedProps>();
+export const ConexionDBPage = () => {
+  const navigate = useNavigate();
+  const [conexions, setConexions] = useState<ConexionDBProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
-  const [searchUser, setSearchUser] = useState<string>('');
+  const [showConexionModal, setShowConexionModal] = useState(false);
+  const [selectedConexionDBId, setSelectedConexionDBId] = useState<number | null>(null);
 
-  useEffect(() => {
-    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
-      .then((response) => {
-        setEmpresas(response.data);
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  }, []);
+  const { onAddConexionDB } = useConexionDBStore();
 
-  const getAllUsers = useCallback((pageNumber = 1) => {
+  const getAllConexions = useCallback((pageNumber = 1) => {
     setIsLoading(true);
-    sigbpsApi.get('/usuarios/getAllUsers', {
+    sigbpsApi.get('/conexion_db/getAllConexionDb', {
       params: {
-        estado: 'A',
         page: pageNumber,
         limit: 5
       }
     })
       .then((response) => {
-        setUsers(response.data);
+        setConexions(response.data);
         setCurrentPage(pageNumber);
         setTotalPages(response.data.totalPages);
         setIsLoading(false);
@@ -54,47 +43,29 @@ export const ListOfClientsPage = () => {
   }, []);
 
   useEffect(() => {
-    getAllUsers();
-  }, [getAllUsers]);
+    getAllConexions();
+  }, [getAllConexions]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      getAllUsers(currentPage - 1);
+      getAllConexions(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      getAllUsers(currentPage + 1);
+      getAllConexions(currentPage + 1);
     }
   };
 
-  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    setEmpresaSeleccionada(selectedId || null);
+  const handleShowConexionModal = (id_conexion_db:number) => {
+    setSelectedConexionDBId(id_conexion_db);
+    setShowConexionModal(true);
   };
 
-  const handleSearchUser = () => {
-    setIsLoading(true);
-    if (searchUser === '') {
-      getAllUsers();
-      setIsLoading(false);  
-    } else {
-      sigbpsApi.get('/usuarios/searchUser', {
-        params: {
-          search: searchUser,
-          estado: 'A'
-        }
-      })
-        .then((response) => {
-          setUsers(response.data);
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          toast.error(`${error.response.data.message}`);
-          setIsLoading(false);
-      })
-    };
+  const handleEditConexion = (id_conexion_db:number) => {
+    onAddConexionDB(id_conexion_db);
+    navigate('/create_connection_db');
   };
 
   return (
@@ -111,49 +82,36 @@ export const ListOfClientsPage = () => {
               <Row>
                 <Col>
                   <h1 className="mt-3 mb-4">
-                    Listado de Clientes
+                    Conexiones a Base de Datos de Clientes
                   </h1>
                 </Col>
               </Row>
 
-              <Row className="mb-3">
+              <Row>
+                <Col md={3}>
+                  <Button 
+                    variant="success" 
+                    style={{
+                      marginBottom: '20px',
+                      marginLeft: '20px'
+                    }}
+                    onClick={() => navigate('/create_connection_db')}
+                  >
+                    Nueva Conexion
+                  </Button>
+                </Col>
+
                 <Col md={9}>
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
-                      placeholder="Buscar Usuario" 
-                      value={searchUser}
-                      onChange={(e) => setSearchUser(e.target.value)}
+                      placeholder="Buscar Conexion a Base de Datos" 
                     />
                     <Button 
                       variant="success" 
-                      onClick={handleSearchUser}
                     >
                       Buscar
                     </Button>
-                  </div>
-                </Col>
-              </Row>
-
-              <Row>
-                <Col md={4}>
-                  <div className="input-group mb-3">
-                  <Form.Select
-                      onChange={handleSelectEmpresa}
-                      value={empresaSeleccionada || ''} 
-                    >
-                      <option value="">--Seleccione la empresa--</option>
-                      {
-                        empresas?.map((empresa) => (
-                          <option 
-                            key={empresa.id_empresa} 
-                            value={empresa.id_empresa}
-                          >
-                            {empresa.nombre_empresa}
-                          </option>
-                        ))
-                      }
-                    </Form.Select>
                   </div>
                 </Col>
               </Row>
@@ -164,29 +122,41 @@ export const ListOfClientsPage = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Cedula</th>
-                        <th>Nombre</th>
-                        <th>Rol</th>
                         <th>Empresa</th>
+                        <th>Usuario DB</th>
+                        <th>Password DB</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {
-                        users?.usuarios?.map((usuario) => (
-                          <tr key={usuario.id_usuario}>
-                            <td>{usuario.id_usuario}</td>
-                            <td>{usuario.username}</td>
-                            <td>{usuario.cedula}</td>
-                            <td>{usuario.nombres} {usuario.apellidos}</td>
-                            <td>{usuario.rol}</td>
-                            <td>{usuario.nombre_empresa}</td>
-                            <td>{usuario.estado}</td>
+                        conexions?.conexions.map((conexion) => (
+                          <tr key={conexion.id_conexion_db}>
+                            <td>{conexion.id_conexion_db}</td>
+                            <td>{conexion.nombre_empresa}</td>
+                            <td>{conexion.conexion_user}</td>
+                            <td>{conexion.conexion_password}</td>
+                            <td>{conexion.estado}</td>
                             <td>
+                              <CustomButton
+                                text='Consultar'
+                                placement='top'
+                                icon={<ViewIcon />}
+                                color="success"
+                                style={{marginRight: '10px'}}
+                                onclick={() => handleShowConexionModal(conexion.id_conexion_db!)}
+                              />
+                              <CustomButton
+                                text='Editar'
+                                placement='top'
+                                icon={<EditIcon />}
+                                color="success"
+                                style={{marginRight: '10px'}}
+                                onclick={() => handleEditConexion(conexion.id_conexion_db!)}
+                              />
                               {
-                                usuario.estado === 'A'
+                                conexion.estado === 'A'
                                   ? (
                                     <CustomButton 
                                       text='Inactivar'
@@ -232,6 +202,12 @@ export const ListOfClientsPage = () => {
                   </Button>
                 </Col>
               </Row>
+
+              <ConexionDBModal 
+                showModal={showConexionModal}
+                setShowModal={setShowConexionModal}
+                idConexionDB={selectedConexionDBId?.toString() || ''}
+              />
             </Container>
           )
       }

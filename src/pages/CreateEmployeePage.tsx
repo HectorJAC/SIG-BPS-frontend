@@ -14,7 +14,7 @@ import { planificaTechApi } from "../api/baseApi";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { getIdUser } from "../utils/getLocalStorageData";
-import { useEmployeesStore } from "../store/employeesStore";
+import { useEmployeesStore } from "../store/conexionDBStore";
 import { useCompanyStore } from "../store/companyStore";
 import { getUserById } from "../api/usuarios/getUserById";
 import { UserProps } from "../interfaces/userInterface";

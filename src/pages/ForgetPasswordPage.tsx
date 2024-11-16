@@ -60,7 +60,7 @@ export const ForgetPasswordPage = () => {
               <Card className='bg-white my-3 mx-auto' style={{ borderRadius: '1rem', maxWidth: '480px' }}>
                 <Card.Body className='p-5 w-100 d-flex flex-column'>
                   <img 
-                    src="/logo.jpg" 
+                    src="/logo.png" 
                     alt="SIG-BPS" 
                     className="img-fluid" 
                     style={{ height: '250px', width: '400px' }}

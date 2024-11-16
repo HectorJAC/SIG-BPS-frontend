@@ -2,6 +2,7 @@ import { Layout } from "../layout/Layout";
 import { Container, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { useUI } from "../context/useUI";
+import '../styles/pages/errorPageStyle.css';
 
 export const ErrorPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export const ErrorPage = () => {
     navigate('/');
     handleCloseAllSection('0');
     dispatch({ type: 'RESET_CONTEXT' });
+    localStorage.removeItem('state');
   };
 
   return (
@@ -24,10 +26,10 @@ export const ErrorPage = () => {
         <p className="lead">La página que estás buscando no fue encontrada.</p>
         <Button 
           onClick={handleGoHome} 
-          variant="primary"
+          variant="success"
           className="mb-2 w-10 0 px-4 py-2 text-uppercase fw-bold shadow-sm border-0 rounded-pill bg-gradient bg-gradient hover-transition hover-shadow hover-translate-y-n3 hover-scale-lg transition-fast"
         >
-            Volver al Inicio
+          Volver al Inicio
         </Button>
       </Container>
     </Layout>

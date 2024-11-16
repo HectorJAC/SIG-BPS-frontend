@@ -5,9 +5,8 @@ import { toast, ToastContainer } from "react-toastify";
 import { CustomButton } from "../components/CustomButton";
 import { formatterDate } from "../utils/formatters";
 import { Spinner } from "../components/Spinner";
-import { DeleteIcon } from "../utils/iconButtons";
+import { DeleteIcon, ViewIcon } from "../utils/iconButtons";
 import { getAllRequest } from "../api/pedidos/getAllRequest";
-import { useCompanyStore } from "../store/companyStore";
 import { RequestProps } from "../interfaces/requestInterface";
 import { getCantRequestByStatus } from "../api/pedidos/getCantRequestByStatus";
 import { updateRequestStatus } from "../api/pedidos/updateRequestStatus";
@@ -18,11 +17,9 @@ export const RequestAdminPage = () => {
   // const [showModal, setShowModal] = useState(false);
   // const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
   const [searchProject, setSearchProject] = useState('');
-  const [cantRequestTrabajando, setCantRequestTrabajando] = useState();
-  const [cantRequestPendiente, setCantRequestPendiente] = useState();
-  const [cantRequestCompletado, setCantRequestCompletado] = useState();
-
-  const { company } = useCompanyStore();
+  const [cantRequestTrabajando, setCantRequestTrabajando] = useState<any>();
+  const [cantRequestPendiente, setCantRequestPendiente] = useState<any>();
+  const [cantRequestCompletado, setCantRequestCompletado] = useState<any>();
 
   const allRequests = useCallback(() => {
     setIsLoading(true);
@@ -31,8 +28,8 @@ export const RequestAdminPage = () => {
         setRequests(response); 
         setIsLoading(false);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        toast.info('No hay solicitudes de gráficas');
         setIsLoading(false);
       }); 
   }, []);
@@ -44,37 +41,34 @@ export const RequestAdminPage = () => {
       .then((response) => {
         setCantRequestTrabajando(response);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        setCantRequestTrabajando(0);
       });
-  }, [company.id_empresa]);
+  }, []);
 
   const getCantRequestPendiente = useCallback(() => {
     getCantRequestByStatus('P')
       .then((response) => {
         setCantRequestPendiente(response);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        setCantRequestPendiente(0);
       });
-  }, [company.id_empresa]);
+  }, []);
 
   const getCantRequestCompletado = useCallback(() => {
     getCantRequestByStatus('C')
       .then((response) => {
         setCantRequestCompletado(response);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
+        setCantRequestCompletado(0);
       });
-  }, [company.id_empresa]);
+  }, []);
 
   useEffect(getCantRequestTrabajando, [getCantRequestTrabajando]);
   useEffect(getCantRequestPendiente, [getCantRequestPendiente]);
   useEffect(getCantRequestCompletado, [getCantRequestCompletado]);
-
-  console.log(requests.filter((request) => request.estado_pedido === 'P'));
-  console.log(requests);
 
   const getCantRequests = () => {
     getCantRequestTrabajando();
@@ -163,6 +157,13 @@ export const RequestAdminPage = () => {
               text="Eliminar"
               icon={<DeleteIcon />}
               color="danger"
+              style={{ marginRight: '10px' }}
+            />
+            <CustomButton 
+              placement="top"
+              text="Consultar Solicitud Completa"
+              icon={<ViewIcon />}
+              color="success"
             />
           </Card.Footer>
         </Card>
@@ -179,7 +180,7 @@ export const RequestAdminPage = () => {
         <Container>
           <Row>
             <Col>
-              <h1 className="mt-3 mb-4">Todas las Solicitudes de Gráficas</h1>
+              <h1 className="mt-3 mb-4">Solicitudes de Gráficas</h1>
             </Col>
           </Row>
 

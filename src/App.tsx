@@ -12,6 +12,9 @@ import { RequestChartsPage } from "./pages/RequestChartsPage";
 import { RequestAdminPage } from "./pages/RequestAdminPage";
 import { ConsultRequestUserPage } from "./pages/ConsultRequestUserPage";
 import { DashboardPage } from "./pages/DashboardPage";
+import { ConexionDBPage } from "./pages/ConexionDBPage";
+import { CreateConexionDBPage } from "./pages/CreateConexionDBPage";
+import { ElkUbicationPage } from "./pages/ElkUbicationPage";
 
 function App() {
   return (
@@ -31,6 +34,9 @@ function App() {
           <Route path='/show_orders_users' element={<RequestAdminPage />} />
           <Route path='/show_request_charts' element={<ConsultRequestUserPage />} />
           <Route path='/dashboard' element={<DashboardPage />} />
+          <Route path='/register_company_connection' element={<ConexionDBPage />} />
+          <Route path='/create_connection_db' element={<CreateConexionDBPage />} />
+          <Route path='/register_elk_ubication' element={<ElkUbicationPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
