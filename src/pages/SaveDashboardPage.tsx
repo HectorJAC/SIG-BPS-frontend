@@ -5,11 +5,18 @@ import { Spinner } from "../components/Spinner";
 import { getAllDashboards } from '../api/dashboards/getAllDashboards';
 import { DashboardKibanaProps, DashboardUserDataProps } from "../interfaces/dashboardUserDataInterface";
 import { sigbpsApi } from "../api/baseApi";
-import { ViewIcon } from "../utils/iconButtons";
-import { CustomButton } from "./CustomButton";
+import { EditIcon, ViewIcon } from "../utils/iconButtons";
+import { CustomButton } from "../components/CustomButton";
 import { formatterDate } from "../utils/formatters";
+import { Layout } from "../layout/Layout";
+import { CreateDashboardModal } from "../components/CreateDashboardModal";
 
-export const AdminDashboards = () => {
+interface EmpresaProps {
+  id_empresa: number;
+  nombre_empresa: string;
+}
+
+export const SaveDashboardPage = () => {
   const [dashboards, setDashboards] = useState<DashboardKibanaProps>();
   const [dashboardInModal, setDashboardInModal] = useState<DashboardUserDataProps>();
   const [isLoading, setIsLoading] = useState(false);
@@ -17,6 +24,20 @@ export const AdminDashboards = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [idDashboardKibana, setIdDashboardKibana] = useState<number>();
+
+  useEffect(() => {
+    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
+      .then((response) => {
+        setEmpresas(response.data);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      });
+  }, []);
 
   const allDashboards = useCallback((pageNumber = 1) => {
     setIsLoading(true);
@@ -74,8 +95,24 @@ export const AdminDashboards = () => {
     };
   };
 
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+  };
+  
+  const handleCloseModal = () => {
+    setShowEditModal(false);
+    setIdDashboardKibana(undefined);
+  };
+
+  useEffect(() => {
+    if (!showEditModal) {
+      allDashboards();
+    }
+  }, [showEditModal]);
+
   return (
-    <>
+    <Layout>
       {
         isLoading 
           ? (
@@ -88,13 +125,25 @@ export const AdminDashboards = () => {
               <Row>
                 <Col>
                   <h1 className="mt-3 mb-4">
-                    Listado de Dashboards
+                    Guardar Dashboards Creados
                   </h1>
                 </Col>
               </Row>
 
               <Row>
-                <Col>
+                <Col md={3}>
+                  <Button 
+                    variant="success" 
+                    style={{
+                      marginBottom: '20px',
+                      marginLeft: '20px'
+                    }}
+                    onClick={() => setShowEditModal(true)}
+                  >
+                    Nuevo Dashboard
+                  </Button>
+                </Col>
+                <Col md={9}>
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
@@ -112,6 +161,29 @@ export const AdminDashboards = () => {
                 </Col>
               </Row>
 
+              <Row>
+                <Col md={4}>
+                  <div className="input-group mb-3">
+                  <Form.Select
+                      onChange={handleSelectEmpresa}
+                      value={empresaSeleccionada || ''} 
+                    >
+                      <option value="">--Seleccione la empresa--</option>
+                      {
+                        empresas?.map((empresa) => (
+                          <option 
+                            key={empresa.id_empresa} 
+                            value={empresa.id_empresa}
+                          >
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))
+                      }
+                    </Form.Select>
+                  </div>
+                </Col>
+              </Row>
+
               <Row className="mt-3">
                 <Col>
                   <Table striped bordered hover>
@@ -119,6 +191,7 @@ export const AdminDashboards = () => {
                       <tr>
                         <th>ID</th>
                         <th>Nombre Dashboard</th>
+                        <th>Empresa</th>
                         <th>Usuario Inserción</th>
                         <th>Fecha Inserción</th>
                         <th>Usuario Actualización</th>
@@ -129,10 +202,11 @@ export const AdminDashboards = () => {
                     </thead>
                     <tbody>
                       {
-                        dashboards?.dashboards?.map((dash) => (
+                        dashboards?.dashboards.map((dash) => (
                           <tr key={dash?.id_dashboard_kibana}>
                             <td>{dash?.id_dashboard_kibana}</td>
                             <td>{dash?.nombre_dashboard}</td>
+                            <td>{dash?.nombre_empresa}</td>
                             <td>{dash?.usuario_insercion}</td>
                             <td>
                               {
@@ -159,6 +233,17 @@ export const AdminDashboards = () => {
                                 onclick={() => {
                                   setDashboardInModal(dash);
                                   setShowModal(true);
+                                }}
+                                style={{ marginRight: '5px' }}
+                              />
+                              <CustomButton
+                                text='Editar'
+                                placement='top'
+                                icon={<EditIcon />}
+                                color="success"
+                                onclick={() => {
+                                  setIdDashboardKibana(dash.id_dashboard_kibana);
+                                  setShowEditModal(true);
                                 }}
                               />
                             </td>
@@ -208,10 +293,16 @@ export const AdminDashboards = () => {
                   </div>
                 </Modal.Body>
               </Modal>
+
+              <CreateDashboardModal 
+                showModal={showEditModal} 
+                setShowModal={handleCloseModal}
+                idDashboardKibana={idDashboardKibana}
+              />
             </Container>
           )
       }
       <ToastContainer />
-    </>
+    </Layout>
   );
 };

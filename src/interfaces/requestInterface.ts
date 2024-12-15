@@ -9,6 +9,10 @@ export interface RequestProps {
   nombres_usuario?: string;
   apellidos_usuario?: string;
   nombre_empresa?: string;
+
+  fecha_actualizacion?: string;
+  usuario_asignado?: string;
+  id_usuario_asignado?: number;
 }
 
 export interface RequestPaginatedProps {

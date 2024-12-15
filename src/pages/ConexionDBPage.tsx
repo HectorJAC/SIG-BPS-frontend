@@ -122,6 +122,7 @@ export const ConexionDBPage = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
+                        <th>Nombre Conexion</th>
                         <th>Empresa</th>
                         <th>Usuario DB</th>
                         <th>Password DB</th>
@@ -134,6 +135,7 @@ export const ConexionDBPage = () => {
                         conexions?.conexions.map((conexion) => (
                           <tr key={conexion.id_conexion_db}>
                             <td>{conexion.id_conexion_db}</td>
+                            <td>{conexion.nombre_conexion_db}</td>
                             <td>{conexion.nombre_empresa}</td>
                             <td>{conexion.conexion_user}</td>
                             <td>{conexion.conexion_password}</td>

@@ -4,6 +4,9 @@ import { toast } from "react-toastify";
 import { CustomAsterisk } from "./CustomAsterisk";
 import { CompanyProps } from "../interfaces/companyInteface";
 import { sigbpsApi } from "../api/baseApi";
+import { useUserStore } from "../store/userStore";
+import { formatterDateToBackend } from "../utils/formatters";
+import { useCompanyStore } from "../store/companyStore";
 
 interface CompanyModalProps {
   showModal: boolean;
@@ -17,6 +20,8 @@ export const CompanyModal:FC<CompanyModalProps> = ({
   idEmpresa
 }) => {
   const [companyData, setCompanyData] = useState<CompanyProps>({} as CompanyProps);
+  const { user } = useUserStore();
+  const { onCreateCompanySuccess, resetCreateCompanySuccess } = useCompanyStore();
 
   useEffect(() => {
     if (idEmpresa && showModal) {
@@ -41,10 +46,15 @@ export const CompanyModal:FC<CompanyModalProps> = ({
     } else {
       sigbpsApi.post('/empresas/createCompany', {
         nombre_empresa: companyData.nombre_empresa,
+        rnc_empresa: companyData.rnc_empresa,
+        telefono_empresa: companyData.telefono_empresa,
+        usuario_insercion: user.id_usuario,
+        fecha_insercion: formatterDateToBackend(new Date().toString()),
         estado: 'A'
       })
         .then((response) => {
           toast.success(`${response.data.message}`);
+          onCreateCompanySuccess();
         })
         .catch((error) => {
           toast.error(`${error.response.data.message}`);
@@ -55,21 +65,28 @@ export const CompanyModal:FC<CompanyModalProps> = ({
     
       // Cerrar el modal
       setShowModal(false);
+      resetCreateCompanySuccess()
     }
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setCompanyData({} as CompanyProps);
+    resetCreateCompanySuccess()
   };
 
-  const handleUpdateNote = () => {
+  const handleUpdateCompany = () => {
     sigbpsApi.put('/empresas/updateCompany', {
       id_empresa: companyData.id_empresa,
       nombre_empresa: companyData.nombre_empresa,
+      rnc_empresa: companyData.rnc_empresa,
+      telefono_empresa: companyData.telefono_empresa,
+      usuario_actualizacion: user.id_usuario,
+      fecha_actualizacion: formatterDateToBackend(new Date().toString()),
     })
       .then((response) => {
         toast.success(response.data.message);
+        onCreateCompanySuccess();
       })
       .catch((error) => {
         toast.error(error.response.data.message);
@@ -80,12 +97,19 @@ export const CompanyModal:FC<CompanyModalProps> = ({
 
     // Cerrar el modal
     setShowModal(false);
+    resetCreateCompanySuccess()
   };
 
   return (
     <Modal show={showModal} onHide={setShowModal}>
       <Modal.Header closeButton>
-        <Modal.Title>Crear Nueva Empresa</Modal.Title>
+        <Modal.Title>
+          {
+            idEmpresa 
+            ? `Editando: ${companyData.nombre_empresa}`
+            : 'Crear Nueva Empresa'
+          }
+        </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
@@ -100,12 +124,34 @@ export const CompanyModal:FC<CompanyModalProps> = ({
           </Form.Group>
 
           <Form.Group>
+            <Form.Label><CustomAsterisk /> RNC de la Empresa</Form.Label>
+            <Form.Control 
+              type="text"
+              placeholder="Ingrese el rnc de la empresa"
+              value={companyData?.rnc_empresa}
+              onChange={(e) => setCompanyData({...companyData, rnc_empresa: e.target.value})}
+              className="mb-2"
+            />
+          </Form.Group>
+
+          <Form.Group>
             <Form.Label><CustomAsterisk /> Nombre de la Empresa</Form.Label>
             <Form.Control 
               type="text"
               placeholder="Ingrese el nombre de la empresa"
               value={companyData?.nombre_empresa}
               onChange={(e) => setCompanyData({...companyData, nombre_empresa: e.target.value})}
+              className="mb-2"
+            />
+          </Form.Group>
+
+          <Form.Group>
+            <Form.Label>Telefono de la Empresa</Form.Label>
+            <Form.Control 
+              type="text"
+              placeholder="Ingrese el rnc de la empresa"
+              value={companyData?.telefono_empresa}
+              onChange={(e) => setCompanyData({...companyData, telefono_empresa: e.target.value})}
               className="mb-2"
             />
           </Form.Group>
@@ -131,7 +177,7 @@ export const CompanyModal:FC<CompanyModalProps> = ({
           onClick={
             !idEmpresa 
               ? handleCreateCompany 
-              : handleUpdateNote
+              : handleUpdateCompany
           }
         >
           {!idEmpresa ? 'Crear Empresa' : 'Actualizar Empresa'}

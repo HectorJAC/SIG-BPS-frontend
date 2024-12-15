@@ -1,19 +1,22 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
-import { useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, InactiveIcon } from "../utils/iconButtons";
+import { EditIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
 import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { useNavigate } from "react-router-dom";
+import { useUserDashboardStore } from "../store/userDashboardStore";
 
 interface EmpresaProps {
   id_empresa: number;
   nombre_empresa: string;
 }
 
-export const ListOfClientsPage = () => {
+export const AsignDashboardPage:FC = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UsersPaginatedProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,6 +24,7 @@ export const ListOfClientsPage = () => {
   const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
   const [searchUser, setSearchUser] = useState<string>('');
+  const { onAddUserDashboard } = useUserDashboardStore();
 
   useEffect(() => {
     sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
@@ -97,6 +101,11 @@ export const ListOfClientsPage = () => {
     };
   };
 
+  const handleAsignDashboards = (id_user_dash:number) => {
+    onAddUserDashboard(id_user_dash);
+    navigate('/list_dashboards_users');
+  };
+
   return (
     <Layout>
       {
@@ -111,7 +120,7 @@ export const ListOfClientsPage = () => {
               <Row>
                 <Col>
                   <h1 className="mt-3 mb-4">
-                    Listado de Clientes
+                    Asignar Dashboards a Gerentes
                   </h1>
                 </Col>
               </Row>
@@ -169,6 +178,7 @@ export const ListOfClientsPage = () => {
                         <th>Nombre</th>
                         <th>Rol</th>
                         <th>Empresa</th>
+                        <th>Cantidad de Dashboards</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
@@ -189,26 +199,17 @@ export const ListOfClientsPage = () => {
                               }
                             </td>
                             <td>{usuario.nombre_empresa}</td>
+                            <td>{usuario.cantidad_dashboards}</td>
                             <td>{usuario.estado}</td>
                             <td>
                               {
-                                usuario.estado === 'A'
-                                  ? (
-                                    <CustomButton 
-                                      text='Inactivar'
-                                      placement='top'
-                                      icon={<InactiveIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                                  : (
-                                    <CustomButton 
-                                      text='Activar'
-                                      placement='top'
-                                      icon={<ActivateIcon />}
-                                      color="danger"
-                                    />
-                                  )
+                                <CustomButton 
+                                  text='Asignar Dashboard'
+                                  placement='top'
+                                  icon={<EditIcon />}
+                                  color="success"
+                                  onclick={() => handleAsignDashboards(usuario.id_usuario!)}
+                                />
                               }
                             </td>
                           </tr>

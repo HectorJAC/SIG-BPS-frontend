@@ -1,48 +1,35 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, InactiveIcon } from "../utils/iconButtons";
+import { ActivateIcon, EditIcon, InactiveIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
-import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { useNavigate } from "react-router-dom";
+import { CustomTitle } from "../components/CustomTitle";
+import { ConsultExtractionProps } from "../interfaces/consultExtractionInterface";
+import { useConsultaExtraccionStore } from "../store/consultaExtractionStore";
 
-interface EmpresaProps {
-  id_empresa: number;
-  nombre_empresa: string;
-}
-
-export const ListOfClientsPage = () => {
-  const [users, setUsers] = useState<UsersPaginatedProps>();
+export const ConsultExtractionPage = () => {
+  const navigate = useNavigate();
+  const [consultas, setConsultas] = useState<ConsultExtractionProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
-  const [searchUser, setSearchUser] = useState<string>('');
 
-  useEffect(() => {
-    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
-      .then((response) => {
-        setEmpresas(response.data);
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  }, []);
+  const { onAddConsultaExtraccion } = useConsultaExtraccionStore();
 
-  const getAllUsers = useCallback((pageNumber = 1) => {
+  const getAllConsultas = useCallback((pageNumber = 1) => {
     setIsLoading(true);
-    sigbpsApi.get('/usuarios/getAllUsers', {
+    sigbpsApi.get('/consulta_extraccion/getAllConsultaExtraccion', {
       params: {
-        estado: 'A',
         page: pageNumber,
         limit: 5
       }
     })
       .then((response) => {
-        setUsers(response.data);
+        setConsultas(response.data);
         setCurrentPage(pageNumber);
         setTotalPages(response.data.totalPages);
         setIsLoading(false);
@@ -54,47 +41,24 @@ export const ListOfClientsPage = () => {
   }, []);
 
   useEffect(() => {
-    getAllUsers();
-  }, [getAllUsers]);
+    getAllConsultas();
+  }, [getAllConsultas]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      getAllUsers(currentPage - 1);
+      getAllConsultas(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      getAllUsers(currentPage + 1);
+      getAllConsultas(currentPage + 1);
     }
   };
 
-  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    setEmpresaSeleccionada(selectedId || null);
-  };
-
-  const handleSearchUser = () => {
-    setIsLoading(true);
-    if (searchUser === '') {
-      getAllUsers();
-      setIsLoading(false);  
-    } else {
-      sigbpsApi.get('/usuarios/searchUser', {
-        params: {
-          search: searchUser,
-          estado: 'A'
-        }
-      })
-        .then((response) => {
-          setUsers(response.data);
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          toast.error(`${error.response.data.message}`);
-          setIsLoading(false);
-      })
-    };
+  const handleEditConexion = (id_conexion_extraccion:number) => {
+    onAddConsultaExtraccion(id_conexion_extraccion);
+    navigate('/create_consult_extraction');
   };
 
   return (
@@ -110,50 +74,37 @@ export const ListOfClientsPage = () => {
             <Container>
               <Row>
                 <Col>
-                  <h1 className="mt-3 mb-4">
-                    Listado de Clientes
-                  </h1>
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col md={9}>
-                  <div className="input-group">
-                    <Form.Control 
-                      type="text" 
-                      placeholder="Buscar Usuario" 
-                      value={searchUser}
-                      onChange={(e) => setSearchUser(e.target.value)}
-                    />
-                    <Button 
-                      variant="success" 
-                      onClick={handleSearchUser}
-                    >
-                      Buscar
-                    </Button>
-                  </div>
+                  <CustomTitle 
+                    title="Consultas de Extracción"
+                  />
                 </Col>
               </Row>
 
               <Row>
-                <Col md={4}>
-                  <div className="input-group mb-3">
-                  <Form.Select
-                      onChange={handleSelectEmpresa}
-                      value={empresaSeleccionada || ''} 
+                <Col md={3}>
+                  <Button 
+                    variant="success" 
+                    style={{
+                      marginBottom: '20px',
+                      marginLeft: '20px'
+                    }}
+                    onClick={() => navigate('/create_consult_extraction')}
+                  >
+                    Nueva Consulta
+                  </Button>
+                </Col>
+
+                <Col md={9}>
+                  <div className="input-group">
+                    <Form.Control 
+                      type="text" 
+                      placeholder="Buscar Consulta de Extraccion" 
+                    />
+                    <Button 
+                      variant="success" 
                     >
-                      <option value="">--Seleccione la empresa--</option>
-                      {
-                        empresas?.map((empresa) => (
-                          <option 
-                            key={empresa.id_empresa} 
-                            value={empresa.id_empresa}
-                          >
-                            {empresa.nombre_empresa}
-                          </option>
-                        ))
-                      }
-                    </Form.Select>
+                      Buscar
+                    </Button>
                   </div>
                 </Col>
               </Row>
@@ -164,35 +115,43 @@ export const ListOfClientsPage = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Username</th>
-                        <th>Cedula</th>
-                        <th>Nombre</th>
-                        <th>Rol</th>
                         <th>Empresa</th>
+                        <th>Nombre Tabla</th>
+                        <th>Index Data</th>
+                        <th>IP Elastic</th>
+                        <th>Usuario Insercion</th>
+                        <th>Fecha Insercion</th>
+                        <th>Usuario Actualizacion</th>
+                        <th>Fecha Actualizacion</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {
-                        users?.usuarios?.map((usuario) => (
-                          <tr key={usuario.id_usuario}>
-                            <td>{usuario.id_usuario}</td>
-                            <td>{usuario.username}</td>
-                            <td>{usuario.cedula}</td>
-                            <td>{usuario.nombres} {usuario.apellidos}</td>
+                        consultas?.consultas.map((consulta) => (
+                          <tr key={consulta.id_consulta_extraccion}>
+                            <td>{consulta.id_consulta_extraccion}</td>
+                            <td>{consulta.nombre_empresa}</td>
+                            <td>{consulta.type}</td>
+                            <td>{consulta.index_data}</td>
+                            <td>{consulta.hosts_elastic}</td>
+                            <td>{consulta.usuario_insercion}</td>
+                            <td>{consulta.fecha_insercion}</td>
+                            <td>{consulta.usuario_actualizacion}</td>
+                            <td>{consulta.fecha_actualizacion}</td>
+                            <td>{consulta.estado}</td>
                             <td>
+                              <CustomButton
+                                text='Editar'
+                                placement='top'
+                                icon={<EditIcon />}
+                                color="success"
+                                style={{marginRight: '10px', marginBottom: '10px'}}
+                                onclick={() => handleEditConexion(consulta.id_consulta_extraccion!)}
+                              />
                               {
-                                usuario.id_rol === 1
-                                  ? 'Administrador'
-                                  : 'Gerente'
-                              }
-                            </td>
-                            <td>{usuario.nombre_empresa}</td>
-                            <td>{usuario.estado}</td>
-                            <td>
-                              {
-                                usuario.estado === 'A'
+                                consulta.estado === 'A'
                                   ? (
                                     <CustomButton 
                                       text='Inactivar'

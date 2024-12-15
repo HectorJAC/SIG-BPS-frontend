@@ -166,6 +166,15 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
+                    <Form.Label><CustomAsterisk/> Nombre Conexion DB</Form.Label>
+                    <Form.Control 
+                      type='text'
+                      value={conexion?.nombre_conexion_db}
+                      onChange={(e) => setConexion({...conexion, nombre_conexion_db: e.target.value})}
+                    />
+                  </Form.Group>
+
+                  <Form.Group className='mb-4'>
                     <Form.Label><CustomAsterisk/> Conexion Driver Library</Form.Label>
                     <Form.Control 
                       type='text'
@@ -184,11 +193,11 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
-                    <Form.Label><CustomAsterisk/> Password DB</Form.Label>
+                    <Form.Label><CustomAsterisk/> Estado</Form.Label>
                     <Form.Control 
                       type='text'
-                      value={conexion?.conexion_password}
-                      onChange={(e) => setConexion({...conexion, conexion_password: e.target.value})}
+                      disabled
+                      value={conexion?.estado}
                     />
                   </Form.Group>
                 </Col>
@@ -233,11 +242,11 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
-                    <Form.Label><CustomAsterisk/> Estado</Form.Label>
+                    <Form.Label><CustomAsterisk/> Password DB</Form.Label>
                     <Form.Control 
                       type='text'
-                      disabled
-                      value={conexion?.estado}
+                      value={conexion?.conexion_password}
+                      onChange={(e) => setConexion({...conexion, conexion_password: e.target.value})}
                     />
                   </Form.Group>
                 </Col>

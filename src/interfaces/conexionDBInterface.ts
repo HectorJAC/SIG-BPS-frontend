@@ -6,6 +6,7 @@ export interface ConexionDBProps {
   conexions: {
     id_conexion_db?: number;
     id_empresa?: number;
+    nombre_conexion_db?: string;
     conexion_driver_library?: string;
     conexion_driver_class?: string;
     conexion_string?: string;
@@ -20,6 +21,7 @@ export interface ConexionDBProps {
 export interface ConexionDBCompanyProps {
   id_conexion_db?: number;
   id_empresa?: number;
+  nombre_conexion_db?: string;
   conexion_driver_library?: string;
   conexion_driver_class?: string;
   conexion_string?: string;

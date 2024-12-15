@@ -8,7 +8,6 @@ import { useState } from 'react';
 import { useUI } from '../context/useUI';
 import { CustomBasicModal } from './CustomBasicModal';
 import { useCompanyStore } from '../store/companyStore';
-import { useEmployeeOrDepartmentSuccessStore, useProjectStore, useTaskSuccessStore } from '../store/projectStore';
 
 interface HeaderProps {
   companyName: string | undefined;
@@ -21,9 +20,6 @@ export const Header = ({ companyName, userName }: HeaderProps) => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const { dispatch } = useUI();
   const { onClearCompany } = useCompanyStore();
-  const { onResetProject } = useProjectStore();
-  const { resetAddingEmployeeDepartmentSuccess } = useEmployeeOrDepartmentSuccessStore();
-  const { resetAddingTaskSuccess } = useTaskSuccessStore();
 
   const handleCloseAllSection = (section:string) => {
     dispatch({ type: 'SET_CLOSE_SECTION', payload: section });
@@ -33,14 +29,14 @@ export const Header = ({ companyName, userName }: HeaderProps) => {
     navigate('/');
     handleCloseAllSection('0');
     dispatch({ type: 'RESET_CONTEXT' });
-    onResetProject();
-    resetAddingEmployeeDepartmentSuccess();
-    resetAddingTaskSuccess();
     localStorage.removeItem('state');
   };
 
   const goToProfile = () => {
     navigate('/profile');
+    handleCloseAllSection('0');
+    dispatch({ type: 'RESET_CONTEXT' });
+    localStorage.removeItem('state');
   };
 
   const handleLogout = () => {
@@ -52,9 +48,6 @@ export const Header = ({ companyName, userName }: HeaderProps) => {
 
     dispatch({ type: 'RESET_CONTEXT' });
     onClearCompany();
-    onResetProject();
-    resetAddingEmployeeDepartmentSuccess();
-    resetAddingTaskSuccess();
 
     // Redirigir al usuario a la página de inicio de sesión
     navigate('/login');

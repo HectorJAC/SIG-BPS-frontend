@@ -3,23 +3,26 @@ import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { CustomButton } from "../components/CustomButton";
-import { formatterDate } from "../utils/formatters";
+import { formatterDate, formatterDateToBackend } from "../utils/formatters";
 import { Spinner } from "../components/Spinner";
-import { DeleteIcon, ViewIcon } from "../utils/iconButtons";
+import { InactiveIcon, ViewIcon } from "../utils/iconButtons";
 import { getAllRequest } from "../api/pedidos/getAllRequest";
 import { RequestProps } from "../interfaces/requestInterface";
 import { getCantRequestByStatus } from "../api/pedidos/getCantRequestByStatus";
 import { updateRequestStatus } from "../api/pedidos/updateRequestStatus";
+import { sigbpsApi } from "../api/baseApi";
+import { UserProps } from "../interfaces/userInterface";
+import { updateRequestUser } from "../api/pedidos/updateRequestUser";
 
 export const RequestAdminPage = () => {
   const [requests, setRequests] = useState<RequestProps[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   // const [showModal, setShowModal] = useState(false);
-  // const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const [searchProject, setSearchProject] = useState('');
+  const [searchRequest, setSearchRequest] = useState('');
   const [cantRequestTrabajando, setCantRequestTrabajando] = useState<any>();
   const [cantRequestPendiente, setCantRequestPendiente] = useState<any>();
   const [cantRequestCompletado, setCantRequestCompletado] = useState<any>();
+  const [admins, setAdmins] = useState<UserProps[]>([]);
 
   const allRequests = useCallback(() => {
     setIsLoading(true);
@@ -76,9 +79,23 @@ export const RequestAdminPage = () => {
     getCantRequestCompletado();
   };
 
+  useEffect(() => {
+    sigbpsApi.get('/usuarios/getAllAdmins')
+      .then((response) => {
+        setAdmins(response.data);
+      })
+      .catch(() => {
+        toast.error('Error al obtener los administradores');
+      });
+  }, [])
+
   const handleUpdateRequestStatus = (id_pedido:number, estado_pedido:string) => {
     setIsLoading(true);
-    updateRequestStatus(id_pedido, estado_pedido)
+    updateRequestStatus(
+      id_pedido, 
+      estado_pedido, 
+      formatterDateToBackend(new Date().toString())
+    )
       .then((response) => {
         toast.success(response.message);
         allRequests();
@@ -91,14 +108,28 @@ export const RequestAdminPage = () => {
       });
   }
 
+  const handleUpdateUser = (id_pedido:number, id_usuario:number) => {
+    setIsLoading(true);
+    updateRequestUser(
+      id_pedido, 
+      id_usuario, 
+      formatterDateToBackend(new Date().toString())
+    )
+      .then((response) => {
+        toast.success(response.message);
+        allRequests();
+        getCantRequests();
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+        setIsLoading(false);
+      });
+  };
+
   // const handleShowModal = (id_gerente: number) => {
   //   setSelectedProjectId(id_gerente);
   //   setShowModal(true);
-  // };
-
-  // const goToEditProject = (id_proyecto:number) => {
-  //   navigate('/create_project');
-  //   onAddProject(id_proyecto);
   // };
 
   // const handleSearchProject = () => {
@@ -128,8 +159,10 @@ export const RequestAdminPage = () => {
       .map((request) => (
         <Card key={request.id_usuario_pedido} className="mb-4">
           <Card.Body>
-            <Card.Title>Cliente: {request.nombres_usuario + ' ' + request.apellidos_usuario}</Card.Title>
-            <Card.Text>Empresa del Cliente: {request.nombre_empresa}</Card.Text>
+            <Card.Title>
+              Solicitud: {request.id_usuario_pedido} - Gerente: {request.nombres_usuario + ' ' + request.apellidos_usuario}
+            </Card.Title>
+            <Card.Text>Empresa del Gerente: {request.nombre_empresa}</Card.Text>
             <Card.Text>Pedido: {request.descripcion_pedido}</Card.Text>
             <Card.Text>
               Fecha Pedido: {
@@ -137,6 +170,9 @@ export const RequestAdminPage = () => {
                   ? 'Sin Fecha'
                   : formatterDate(request.fecha_pedido)
               }
+            </Card.Text>
+            <Card.Text>Estado Solicitud</Card.Text>
+            <Card.Text>
               <Form.Select
                 className="mt-2"
                 value={request.estado_pedido}
@@ -150,20 +186,50 @@ export const RequestAdminPage = () => {
                 <option value="C">Completado</option>
               </Form.Select>
             </Card.Text>
+            <Card.Text>Usuario asignado</Card.Text>
+            <Card.Text>
+              <Form.Select
+                className="mt-2"
+                value={request.id_usuario_asignado === null ? '' : request.id_usuario_asignado}
+                onChange={(e) => handleUpdateUser(
+                  request.id_usuario_pedido!, 
+                  Number(e.target.value)
+                )}
+              >
+                <option value="">Sin Asignar</option>
+                {
+                  admins?.map((admin) => (
+                    <option key={admin.id_usuario} value={admin.id_usuario}>
+                      {admin.nombres + ' ' + admin.apellidos}
+                    </option>
+                  ))
+                }
+              </Form.Select>
+            </Card.Text>
+            <Card.Text>
+              Fecha Actualizacion: {
+                request.fecha_actualizacion === null
+                  ? 'Sin Fecha'
+                  : formatterDate(request.fecha_actualizacion)
+              }
+            </Card.Text>
           </Card.Body>
           <Card.Footer>
-            <CustomButton 
-              placement="top"
-              text="Eliminar"
-              icon={<DeleteIcon />}
-              color="danger"
-              style={{ marginRight: '10px' }}
-            />
             <CustomButton 
               placement="top"
               text="Consultar Solicitud Completa"
               icon={<ViewIcon />}
               color="success"
+              style={{ 
+                marginLeft: '10px',
+                marginRight: '250px' 
+              }}
+            />
+            <CustomButton 
+              placement="top"
+              text="Inactivar"
+              icon={<InactiveIcon />}
+              color="danger"
             />
           </Card.Footer>
         </Card>
@@ -189,9 +255,9 @@ export const RequestAdminPage = () => {
               <div className="input-group">
                 <Form.Control
                   type="text"
-                  placeholder="Buscar por ID o Titulo del Proyecto"
-                  value={searchProject}
-                  onChange={(e) => setSearchProject(e.target.value)}
+                  placeholder="Buscar por ID de la solicitud, ID o nombre del gerente y por descripcion del pedido"
+                  value={searchRequest}
+                  onChange={(e) => setSearchRequest(e.target.value)}
                 />
                 <Button 
                   variant="success" 

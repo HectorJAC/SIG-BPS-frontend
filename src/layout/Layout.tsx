@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { Sidebar } from "../components/Sidebar";
 import { useCompanyStore } from "../store/companyStore";
-import { getUserById } from "../api/usuarios/getUserById";
-import { UserProps } from "../interfaces/userInterface";
+import { useUserStore } from "../store/userStore";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -12,14 +10,7 @@ interface LayoutProps {
 
 export const Layout = ({children}: LayoutProps) => {
   const { company } = useCompanyStore();
-  const [user, setUser] = useState<UserProps>({} as UserProps);
-
-  useEffect(() => {
-    getUserById()
-      .then((response) => {
-        setUser(response);
-      })
-  }, []);
+  const { user } = useUserStore();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', zIndex: 1, marginLeft: '200px', marginTop: '50px' }}>

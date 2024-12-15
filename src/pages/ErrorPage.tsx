@@ -29,7 +29,7 @@ export const ErrorPage = () => {
           variant="success"
           className="mb-2 w-10 0 px-4 py-2 text-uppercase fw-bold shadow-sm border-0 rounded-pill bg-gradient bg-gradient hover-transition hover-shadow hover-translate-y-n3 hover-scale-lg transition-fast"
         >
-          Volver al Inicio
+          Volver a Inicio
         </Button>
       </Container>
     </Layout>

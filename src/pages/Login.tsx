@@ -38,6 +38,11 @@ export const Login = () => {
           localStorage.setItem('username', response.data.usuario.username);
           localStorage.setItem('id_usuario', response.data.usuario.id_usuario);
 
+          if (response.data.usuario.estado === 'I') {
+            toast.error(response.data.message);
+            return;
+          }
+
           if (response.data.usuario.id_rol === 2) {
             toast.success(`Bienvenido a ${response.data.empresa.nombre_empresa}`);
             setTimeout(() => {
@@ -63,6 +68,10 @@ export const Login = () => {
 
   const gotoRegisterUser = () => {
     navigate('/register');
+  };
+
+  const gotoRegisterAdmin = () => {
+    navigate('/register_admin');
   };
 
   return (
@@ -116,11 +125,19 @@ export const Login = () => {
                   </Form.Text>
 
                   <Form.Text
-                    className='text-center text-success'
+                    className='text-center text-success mb-3'
                     style={{ cursor: 'pointer' }}
                     onClick={gotoRegisterUser}
                   >
                     ¿No tienes un usuario?, Crea uno
+                  </Form.Text>
+
+                  <Form.Text
+                    className='text-center text-success'
+                    style={{ cursor: 'pointer' }}
+                    onClick={gotoRegisterAdmin}
+                  >
+                    ¿Eres un nuevo administrador?, Crea un usuario
                   </Form.Text>
                 </Card.Body>
               </Card>

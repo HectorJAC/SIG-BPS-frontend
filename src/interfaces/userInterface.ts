@@ -12,6 +12,9 @@ export interface UserProps {
     estado?: string
     rol?: string
     nombre_empresa?: string
+    cantidad_dashboards?: number
+    fecha_insercion?: string
+    fecha_actualizacion?: string
 }
 
 export interface UsersPaginatedProps {

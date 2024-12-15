@@ -5,6 +5,7 @@ import { CustomBasicModal } from "../components/CustomBasicModal";
 import { sigbpsApi } from "../api/baseApi";
 import { ToastContainer, toast } from "react-toastify";
 import { getIdUser } from "../utils/getLocalStorageData";
+import { formatterDateToBackend } from "../utils/formatters";
 
 export const RequestChartsPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,7 +15,7 @@ export const RequestChartsPage = () => {
     sigbpsApi.post('/pedidos/createPedido', {
       descripcion_pedido: descRequest,
       id_usuario: getIdUser(),
-      fecha_pedido: new Date().toLocaleDateString()
+      fecha_pedido: formatterDateToBackend(new Date().toString())
     })
       .then((response) => {
         setShowModal(false);

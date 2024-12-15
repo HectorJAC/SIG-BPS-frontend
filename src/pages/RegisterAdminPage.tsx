@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { 
@@ -14,36 +14,13 @@ import { Background } from '../components/Background';
 import { CustomAsterisk } from '../components/CustomAsterisk';
 import "react-toastify/dist/ReactToastify.css";
 import { sigbpsApi } from '../api/baseApi';
-import { CustomTooltip } from '../components/CustomTooltip';
 import { RegisterUserProps } from '../interfaces/registerUserInterface';
-import { FaRegCircleQuestion } from "react-icons/fa6";
 import { formatterDateToBackend } from '../utils/formatters';
 
-interface EmpresaProps {
-  id_empresa: number;
-  nombre_empresa: string;
-}
 
-export const RegisterPage = () => {
+export const RegisterAdminPage = () => {
   const [registerUser, setRegisterUser] = useState<RegisterUserProps>();
-  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
-      .then((response) => {
-        setEmpresas(response.data);
-      })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
-  }, []);
-
-  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    setEmpresaSeleccionada(selectedId || null);
-  };
 
   const handleCreateUser = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,21 +30,15 @@ export const RegisterPage = () => {
       return;
     };
 
-    if (!empresaSeleccionada) {
-      toast.error('Seleccione una empresa');
-      return;
-    };
-
     sigbpsApi.post('/usuarios/createUserClient', {
       username: registerUser?.username,
       password: registerUser?.password,
-      id_rol: 2,
+      id_rol: 1,
       nombres: registerUser?.nombres,
       apellidos: registerUser?.apellidos,
       cedula: registerUser?.cedula,
       numero_telefono: registerUser?.numero_telefono,
       email: registerUser?.email,
-      id_empresa: empresaSeleccionada,
       fecha_insercion: formatterDateToBackend(new Date().toString()),
       estado: 'A'
     })
@@ -93,7 +64,7 @@ export const RegisterPage = () => {
           <Card className='bg-white my-5 mx-auto' style={{ borderRadius: '1rem', maxWidth: '1000px' }}>
             <Card.Body className='p-5 d-flex flex-column'>
               <h1 className='text-center mb-4'>
-                Crear Usuario
+                Crear Administrador
               </h1>
 
               <Col md={4} className='mb-3'>
@@ -105,38 +76,6 @@ export const RegisterPage = () => {
                   <FaAngleLeft/> Volver
                 </Form.Text>
               </Col>
-
-              <Row>
-                <Col md={12}>
-                  <Form.Group className='mb-4'>
-                      <CustomTooltip 
-                        text='Si no se muestra su empresa contacte con el administrador' 
-                        placement='top'
-                        isButton={false}
-                      >
-                        <Form.Label>
-                          <CustomAsterisk/> Empresa <FaRegCircleQuestion />
-                        </Form.Label>
-                      </CustomTooltip>
-                    <Form.Select
-                      onChange={handleSelectEmpresa}
-                      value={empresaSeleccionada || ''}
-                    >
-                      <option value="">--Seleccione su empresa--</option>
-                      {
-                        empresas?.map((empresa) => (
-                          <option 
-                            key={empresa.id_empresa} 
-                            value={empresa.id_empresa}
-                          >
-                            {empresa.nombre_empresa}
-                          </option>
-                        ))
-                      }
-                    </Form.Select>
-                  </Form.Group>
-                </Col>
-              </Row>
 
               <Row>
                 <Col md={6}>
@@ -217,7 +156,7 @@ export const RegisterPage = () => {
               </Row>
 
               <Button size='lg' className="mb-2 w-100" type='submit' variant='success'>
-                Crear Usuario
+                Crear Administrador
               </Button>
             </Card.Body>
           </Card>

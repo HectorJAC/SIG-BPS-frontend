@@ -1,15 +1,14 @@
 import { Accordion } from "react-bootstrap";
 import './styles/sidebar.css';
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import { useUI } from "../context/useUI";
-import { getUserById } from "../api/usuarios/getUserById";
 import { CustomSideBarItem } from "./CustomSideBarItem";
-import { UserProps } from "../interfaces/userInterface";
 import { initialState } from '../interfaces/contextInterfaces';
+import { useUserStore } from "../store/userStore";
 
 export const Sidebar:FC = () => {
   const { state, dispatch } = useUI();
-  const [user, setUser] = useState<UserProps>({} as UserProps);
+  const { user } = useUserStore();
 
   const handleSectionClick = (section: string) => {
     dispatch({ type: 'SET_OPEN_SECTION', payload: state.openSection === section ? null : section });
@@ -18,13 +17,6 @@ export const Sidebar:FC = () => {
   const handleActiveOption = (option: string) => {
     dispatch({ type: 'SET_ACTIVE_OPTION', payload: option });
   };
-
-  useEffect(() => {
-    getUserById()
-      .then((response) => {
-        setUser(response);
-      })
-  }, []);
 
   useEffect(() => {
     const sidebarState = localStorage.getItem('state');
@@ -121,6 +113,12 @@ export const Sidebar:FC = () => {
                   handleActiveOption={() => handleActiveOption('Conexión ElasticSearch')}
                 />
                 <CustomSideBarItem 
+                  linkText="Construir Consulta de Extraccion"
+                  linkPath="/consult_extraction"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Construir Consulta de Extraccion')}
+                />
+                <CustomSideBarItem 
                   linkText="Extraer Data"
                   linkPath="/extract_data"
                   activeOption={state.activeOption}
@@ -135,10 +133,28 @@ export const Sidebar:FC = () => {
                   }}
                 />
                 <CustomSideBarItem 
-                  linkText="Asignar Graficas"
-                  linkPath="/asign_charts"
+                  linkText="Guardar Dashboard"
+                  linkPath="/save_dashboards"
                   activeOption={state.activeOption}
-                  handleActiveOption={() => handleActiveOption('Asignar Graficas')}
+                  handleActiveOption={() => handleActiveOption('Guardar Dashboard')}
+                />
+                <CustomSideBarItem 
+                  linkText="Relacion Consulta-Dashboard"
+                  linkPath="/related_query_dashboard"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Relacion Consulta-Dashboard')}
+                />
+                <CustomSideBarItem 
+                  linkText="Asignar Dashboard"
+                  linkPath="/asign_dashboard"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Asignar Dashboard')}
+                />
+                <CustomSideBarItem 
+                  linkText="Dashboards por Usuarios"
+                  linkPath="/dashboards_by_users"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Dashboards por Usuarios')}
                 />
               </Accordion.Item>
           </>
