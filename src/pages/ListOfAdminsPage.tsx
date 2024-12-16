@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, InactiveIcon } from "../utils/iconButtons";
+import { ViewIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
 import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { ConsultUserModal } from "../components/ConsultUserModal";
 
 export const ListOfAdminsPage = () => {
   const [users, setUsers] = useState<UsersPaginatedProps>();
@@ -14,6 +15,8 @@ export const ListOfAdminsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchUser, setSearchUser] = useState<string>('');
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [idUserModal, setIdUserModal] = useState<number>();
 
   const getAllUsers = useCallback((pageNumber = 1) => {
     setIsLoading(true);
@@ -73,6 +76,11 @@ export const ListOfAdminsPage = () => {
           setIsLoading(false);
       })
     };
+  };
+
+  const handleShowConsultUserModal = (idUsuario: number) => {
+    setShowModal(true);
+    setIdUserModal(idUsuario);
   };
 
   return (
@@ -145,23 +153,15 @@ export const ListOfAdminsPage = () => {
                             <td>{usuario.estado}</td>
                             <td>
                               {
-                                usuario.estado === 'A'
-                                  ? (
-                                    <CustomButton 
-                                      text='Inactivar'
-                                      placement='top'
-                                      icon={<InactiveIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                                  : (
-                                    <CustomButton 
-                                      text='Activar'
-                                      placement='top'
-                                      icon={<ActivateIcon />}
-                                      color="danger"
-                                    />
-                                  )
+                                <CustomButton 
+                                  text='Consultar'
+                                  placement='top'
+                                  icon={<ViewIcon />}
+                                  color="success"
+                                  onclick={() => 
+                                    handleShowConsultUserModal(usuario.id_usuario!)
+                                  }
+                                />
                               }
                             </td>
                           </tr>
@@ -191,6 +191,12 @@ export const ListOfAdminsPage = () => {
                   </Button>
                 </Col>
               </Row>
+
+              <ConsultUserModal 
+                showModal={showModal}
+                setShowModal={setShowModal}
+                idUsuario={idUserModal!}               
+              />
             </Container>
           )
       }

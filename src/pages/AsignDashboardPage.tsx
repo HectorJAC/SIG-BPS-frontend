@@ -73,12 +73,7 @@ export const AsignDashboardPage:FC = () => {
     }
   };
 
-  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    setEmpresaSeleccionada(selectedId || null);
-  };
-
-  const handleSearchUser = () => {
+  const handleSearchUser = (searchUser?: string) => {
     setIsLoading(true);
     if (searchUser === '') {
       getAllUsers();
@@ -99,6 +94,18 @@ export const AsignDashboardPage:FC = () => {
           setIsLoading(false);
       })
     };
+  };
+
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+    empresas.filter((empresa) => {
+      if (empresa.id_empresa === selectedId) {
+        handleSearchUser(empresa.nombre_empresa);
+      } else {
+        getAllUsers();
+      };
+    });
   };
 
   const handleAsignDashboards = (id_user_dash:number) => {
@@ -136,7 +143,7 @@ export const AsignDashboardPage:FC = () => {
                     />
                     <Button 
                       variant="success" 
-                      onClick={handleSearchUser}
+                      onClick={() => handleSearchUser()}
                     >
                       Buscar
                     </Button>

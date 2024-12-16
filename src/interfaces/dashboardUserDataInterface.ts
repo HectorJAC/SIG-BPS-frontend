@@ -27,6 +27,7 @@ export interface OneDashboardUserDataProps {
   estado?: string;
 
   nombre_empresa?: string;
+  cantidad_usuarios?: number;
 }
 
 export interface DashboardKibanaProps {

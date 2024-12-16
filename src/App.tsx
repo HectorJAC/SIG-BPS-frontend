@@ -24,6 +24,7 @@ import { ConsultExtractionPage } from "./pages/ConsultExtractionPage";
 import { CreateConsultExtractionPage } from "./pages/CreateConsultExtractionPage";
 import { ExtractDataPage } from "./pages/ExtractDataPage";
 import { RegisterAdminPage } from "./pages/RegisterAdminPage";
+import { DashboardsUsersPage } from "./pages/DashboardsUsersPage";
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
           <Route path='/consult_extraction' element={<ConsultExtractionPage />} />
           <Route path='/create_consult_extraction' element={<CreateConsultExtractionPage />} />
           <Route path='/extract_data' element={<ExtractDataPage />} />
+          <Route path='/dashboards_by_users' element={<DashboardsUsersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

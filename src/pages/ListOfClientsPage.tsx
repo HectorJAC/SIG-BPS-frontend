@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, InactiveIcon } from "../utils/iconButtons";
+import { ViewIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
 import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { ConsultUserModal } from "../components/ConsultUserModal";
 
 interface EmpresaProps {
   id_empresa: number;
@@ -21,6 +22,8 @@ export const ListOfClientsPage = () => {
   const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
   const [searchUser, setSearchUser] = useState<string>('');
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [idUserModal, setIdUserModal] = useState<number>();
 
   useEffect(() => {
     sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
@@ -69,12 +72,7 @@ export const ListOfClientsPage = () => {
     }
   };
 
-  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
-    setEmpresaSeleccionada(selectedId || null);
-  };
-
-  const handleSearchUser = () => {
+  const handleSearchUser = (searchUser?: string) => {
     setIsLoading(true);
     if (searchUser === '') {
       getAllUsers();
@@ -95,6 +93,23 @@ export const ListOfClientsPage = () => {
           setIsLoading(false);
       })
     };
+  };
+
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+    empresas.filter((empresa) => {
+      if (empresa.id_empresa === selectedId) {
+        handleSearchUser(empresa.nombre_empresa);
+      } else {
+        getAllUsers();
+      };
+    });
+  };
+
+  const handleShowConsultUserModal = (idUsuario: number) => {
+    setShowModal(true);
+    setIdUserModal(idUsuario);
   };
 
   return (
@@ -127,7 +142,7 @@ export const ListOfClientsPage = () => {
                     />
                     <Button 
                       variant="success" 
-                      onClick={handleSearchUser}
+                      onClick={() => handleSearchUser()}
                     >
                       Buscar
                     </Button>
@@ -192,23 +207,15 @@ export const ListOfClientsPage = () => {
                             <td>{usuario.estado}</td>
                             <td>
                               {
-                                usuario.estado === 'A'
-                                  ? (
-                                    <CustomButton 
-                                      text='Inactivar'
-                                      placement='top'
-                                      icon={<InactiveIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                                  : (
-                                    <CustomButton 
-                                      text='Activar'
-                                      placement='top'
-                                      icon={<ActivateIcon />}
-                                      color="danger"
-                                    />
-                                  )
+                                <CustomButton 
+                                  text='Consultar'
+                                  placement='top'
+                                  icon={<ViewIcon />}
+                                  color="success"
+                                  onclick={() => 
+                                    handleShowConsultUserModal(usuario.id_usuario!)
+                                  }
+                                />
                               }
                             </td>
                           </tr>
@@ -238,6 +245,12 @@ export const ListOfClientsPage = () => {
                   </Button>
                 </Col>
               </Row>
+
+              <ConsultUserModal 
+                showModal={showModal}
+                setShowModal={setShowModal}
+                idUsuario={idUserModal!}               
+              />
             </Container>
           )
       }

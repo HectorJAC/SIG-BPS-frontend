@@ -72,7 +72,7 @@ export const SaveDashboardPage = () => {
     }
   };
 
-  const handleSearchDashboard = () => {
+  const handleSearchDashboard = (searchDashboard?: string) => {
     setIsLoading(true);
     if (searchDashboard === '') {
       allDashboards();
@@ -96,8 +96,17 @@ export const SaveDashboardPage = () => {
   };
 
   const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value);
+    const selectedId = parseInt(e.target.value) || null;
     setEmpresaSeleccionada(selectedId || null);
+    console.log(selectedId);
+    console.log(empresaSeleccionada);
+    empresas.filter((empresa) => {
+      if (empresa.id_empresa === selectedId) {
+        handleSearchDashboard(empresa.nombre_empresa);
+      } else if (selectedId === null) {
+        allDashboards();
+      }
+    });
   };
   
   const handleCloseModal = () => {
@@ -153,7 +162,7 @@ export const SaveDashboardPage = () => {
                     />
                     <Button 
                       variant="success" 
-                      onClick={handleSearchDashboard}
+                      onClick={() => handleSearchDashboard()}
                     >
                       Buscar
                     </Button>

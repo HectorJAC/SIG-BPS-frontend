@@ -46,6 +46,7 @@ export const DashboardPage = () => {
                           height={700}
                           width={1200}
                         ></iframe>
+                        <hr />
                       </div>
                     ))
                   ) : (
