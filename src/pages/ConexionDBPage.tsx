@@ -1,7 +1,7 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
 import { ActivateIcon, EditIcon, InactiveIcon, ViewIcon } from "../utils/iconButtons";
@@ -11,6 +11,11 @@ import { useNavigate } from "react-router-dom";
 import { ConexionDBModal } from "../components/ConexionDBModal";
 import { useConexionDBStore } from "../store/conexionDBStore";
 
+interface EmpresaProps {
+  id_empresa: number;
+  nombre_empresa: string;
+}
+
 export const ConexionDBPage = () => {
   const navigate = useNavigate();
   const [conexions, setConexions] = useState<ConexionDBProps>();
@@ -19,8 +24,21 @@ export const ConexionDBPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [showConexionModal, setShowConexionModal] = useState(false);
   const [selectedConexionDBId, setSelectedConexionDBId] = useState<number | null>(null);
+  const [searchConexion, seatSearchConexion] = useState<string>('');
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
 
   const { onAddConexionDB } = useConexionDBStore();
+
+  useEffect(() => {
+    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
+      .then((response) => {
+        setEmpresas(response.data);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      });
+  }, []);
 
   const getAllConexions = useCallback((pageNumber = 1) => {
     setIsLoading(true);
@@ -68,6 +86,44 @@ export const ConexionDBPage = () => {
     navigate('/create_connection_db');
   };
 
+  const handleSearchConexion = (searchConexionParameter?: string) => {
+    setIsLoading(true);
+    if (searchConexion === '' && searchConexionParameter === undefined) {
+      getAllConexions();
+      setIsLoading(false);  
+    } else {
+      sigbpsApi.get('/conexion_db/searchConexionDb', {
+        params: {
+          search: searchConexion || searchConexionParameter,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setConexions(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(`${error.response.data.message}`);
+          setIsLoading(false);
+      })
+    };
+  };
+
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+  
+    const empresaSeleccionada = empresas.find(
+      (empresa) => empresa.id_empresa === selectedId
+    );
+  
+    if (empresaSeleccionada) {
+      handleSearchConexion(empresaSeleccionada.nombre_empresa);
+    } else {
+      getAllConexions();
+    }
+  };
+
   return (
     <Layout>
       {
@@ -106,12 +162,38 @@ export const ConexionDBPage = () => {
                     <Form.Control 
                       type="text" 
                       placeholder="Buscar Conexion a Base de Datos" 
+                      value={searchConexion}
+                      onChange={(e) => seatSearchConexion(e.target.value)}
                     />
                     <Button 
                       variant="success" 
+                      onClick={() => handleSearchConexion()}
                     >
                       Buscar
                     </Button>
+                  </div>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={4}>
+                  <div className="input-group mb-3">
+                  <Form.Select
+                      onChange={handleSelectEmpresa}
+                      value={empresaSeleccionada || ''} 
+                    >
+                      <option value="">--Seleccione la empresa--</option>
+                      {
+                        empresas?.map((empresa) => (
+                          <option 
+                            key={empresa.id_empresa} 
+                            value={empresa.id_empresa}
+                          >
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))
+                      }
+                    </Form.Select>
                   </div>
                 </Col>
               </Row>

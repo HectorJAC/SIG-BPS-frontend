@@ -25,10 +25,12 @@ export const ProfilePage = () => {
   const [repeatNewPassword, setRepeatNewPassword] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const [showModalDeleteUser, setShowModalDeleteUser] = useState(false);
+
   const navigate = useNavigate();
   const { dispatch } = useUI();
+
   const { onClearCompany } = useCompanyStore();
-  const { user, onSetUser } = useUserStore();
+  const { user } = useUserStore();
 
   const getUserData = useCallback(() => {
     setIsLoading(true);
@@ -88,10 +90,9 @@ export const ProfilePage = () => {
       })
         .then(response => {
           toast.success(`${response.data.message}`);
-          onSetUser(response.data.user);
-          console.log('user', user);
           setEditMode(false);
           setShowConfirmModal(false);
+          // onSetUser(response.data.user);
         })
         .catch(error => {
           toast.error(`${error.response.data.message}`);
@@ -116,7 +117,7 @@ export const ProfilePage = () => {
 
   const handleDeleteUser = () => {
     sigbpsApi.put('/usuarios/deleteUser', {
-      id_usuario: 1,
+      id_usuario: user?.id_usuario,
       fecha_actualizacion: formatterDateToBackend(new Date().toString())
     })
       .then(response => {
@@ -135,7 +136,7 @@ export const ProfilePage = () => {
 
           // Redirigir al usuario a la página de inicio de sesión
           navigate('/login');
-        }, 500);
+        }, 1000);
       })
       .catch(error => {
         toast.error(`${error.response.data.message}`);

@@ -5,6 +5,10 @@ interface consultaExtractionProps {
   onAddConsultaExtraccion: (id: number) => void;
   onGetConsultaExtraccion: () => number;
   onResetConsultaExtraccion: () => void;
+
+  editPage: boolean;
+  onChangeEditPage: () => void;
+  onResetEditPage: () => void;
 }
 
 export const useConsultaExtraccionStore = create<consultaExtractionProps>((set, get) => ({
@@ -12,4 +16,8 @@ export const useConsultaExtraccionStore = create<consultaExtractionProps>((set, 
   onAddConsultaExtraccion: (id: number) => set({ id_consulta_extraccion: id }),
   onGetConsultaExtraccion: () => get().id_consulta_extraccion,
   onResetConsultaExtraccion: () => set({ id_consulta_extraccion: 0 }),
+
+  editPage: true,
+  onChangeEditPage: () => set({ editPage: false }),
+  onResetEditPage: () => set({ editPage: true }),
 }));

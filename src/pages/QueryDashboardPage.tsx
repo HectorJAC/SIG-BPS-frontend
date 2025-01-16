@@ -1,25 +1,25 @@
-import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { getAllDashboards } from '../api/dashboards/getAllDashboards';
 import { DashboardKibanaProps } from "../interfaces/dashboardUserDataInterface";
 import { sigbpsApi } from "../api/baseApi";
-import { ViewIcon } from "../utils/iconButtons";
+import { AddIcon } from "../utils/iconButtons";
 import { formatterDate } from "../utils/formatters";
 import { CustomButton } from "../components/CustomButton";
 import { Layout } from "../layout/Layout";
-import { UserProps } from "../interfaces/userInterface";
+import { useNavigate } from "react-router-dom";
+import { useDashboardKibanaStore } from "../store/dashboardKibanaStore";
 
-export const DashboardsUsersPage = () => {
+export const QueryDashboardPage = () => {
+  const navigate = useNavigate();
   const [dashboards, setDashboards] = useState<DashboardKibanaProps>();
-  const [usersInDashboard, setUsersInDashboards] = useState<UserProps[]>([]);
-  const [idDashboardKibana, setIdDashboardKibana] = useState<number>();
   const [isLoading, setIsLoading] = useState(false);
   const [searchDashboard, setSearchDashboard] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showModal, setShowModal] = useState(false);
+  const { onAddDashboardKibana } = useDashboardKibanaStore();
 
   const allDashboards = useCallback((pageNumber = 1) => {
     setIsLoading(true);
@@ -41,22 +41,6 @@ export const DashboardsUsersPage = () => {
   useEffect(() => {
     allDashboards();
   }, [allDashboards]);
-
-  useEffect(() => {
-    if (idDashboardKibana !== undefined || showModal) {
-      sigbpsApi.get('/dashboard_kibana/getAllUsersWithDashboard', {
-        params: {
-          id_dashboard_kibana: idDashboardKibana
-        }
-      })
-        .then((response) => {
-          setUsersInDashboards(response.data);
-        })
-        .catch((error) => {
-          toast.error(`${error.response.data.message}`);
-        });
-    }
-  }, [idDashboardKibana, showModal]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -93,9 +77,9 @@ export const DashboardsUsersPage = () => {
     };
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setIdDashboardKibana(undefined);
+  const hanndleGoToQueryDashboard = (idDashboard: number) => {
+    navigate('/add_query_to_dashboard');
+    onAddDashboardKibana(idDashboard);
   };
 
   return (
@@ -113,7 +97,7 @@ export const DashboardsUsersPage = () => {
                 <Row>
                   <Col>
                     <h1 className="mt-3 mb-4">
-                      Listado de Dashboards
+                      Relación Consultas-Dashboards
                     </h1>
                   </Col>
                 </Row>
@@ -144,7 +128,6 @@ export const DashboardsUsersPage = () => {
                         <tr>
                           <th>ID</th>
                           <th>Nombre Dashboard</th>
-                          <th>Cantidad de Usuarios</th>
                           <th>Usuario Inserción</th>
                           <th>Fecha Inserción</th>
                           <th>Usuario Actualización</th>
@@ -159,7 +142,6 @@ export const DashboardsUsersPage = () => {
                             <tr key={dash?.id_dashboard_kibana}>
                               <td>{dash?.id_dashboard_kibana}</td>
                               <td>{dash?.nombre_dashboard}</td>
-                              <td>{dash?.cantidad_usuarios}</td>
                               <td>{dash?.usuario_insercion}</td>
                               <td>
                                 {
@@ -178,20 +160,15 @@ export const DashboardsUsersPage = () => {
                               </td>
                               <td>{dash?.estado}</td>
                               <td>
-                                {
-                                  dash.cantidad_usuarios! > 0 && (
-                                    <CustomButton
-                                      text='Ver Usuarios'
-                                      placement='top'
-                                      icon={<ViewIcon />}
-                                      color="success"
-                                      onclick={() => {
-                                        setIdDashboardKibana(dash.id_dashboard_kibana!);
-                                        setShowModal(true);
-                                      }}
-                                    />
-                                  )
-                                }
+                                <CustomButton
+                                  text='Agregar Consulta'
+                                  placement='top'
+                                  icon={<AddIcon />}
+                                  color="success"
+                                  onclick={() => {
+                                    hanndleGoToQueryDashboard(dash.id_dashboard_kibana!);
+                                  }}
+                                />
                               </td>
                             </tr>
                           ))
@@ -220,31 +197,6 @@ export const DashboardsUsersPage = () => {
                     </Button>
                   </Col>
                 </Row>
-
-                <Modal 
-                  show={showModal} 
-                  onHide={handleCloseModal} 
-                  size="lg"
-                >
-                  <Modal.Header closeButton>
-                    <Modal.Title>
-                      Usuarios con el dashboard asignado
-                    </Modal.Title>
-                  </Modal.Header>
-                  <Modal.Body>
-                    {
-                      usersInDashboard?.map((user) => (
-                        <div key={user.id_usuario}>
-                          <p><strong>ID:</strong> {user.id_usuario}</p>
-                          <p><strong>Nombre:</strong> {user.nombres} {user.apellidos}</p>
-                          <p><strong>Cédula:</strong> {user.cedula}</p>
-                          <p><strong>Nombre Empresa:</strong> {user.nombre_empresa}</p>
-                          <hr />
-                        </div>
-                      ))
-                    }
-                  </Modal.Body>
-                </Modal>
               </Container>
             </Layout>
           )

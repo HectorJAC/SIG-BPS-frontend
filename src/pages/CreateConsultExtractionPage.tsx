@@ -30,8 +30,21 @@ export const CreateConsultExtractionPage = () => {
   const [conexionDBSeleccionada, setConexionDBSeleccionada] = useState<number | null>(null);
   const [conexionElastic, setConexionElastic] = useState<ConexionElasticProps[]>([]);
   const [conexionElasticSeleccionada, setConexionElasticSeleccionada] = useState<number | null>(null);
-  const { id_consulta_extraccion, onResetConsultaExtraccion } = useConsultaExtraccionStore();
+
+  const { id_consulta_extraccion, onResetConsultaExtraccion, editPage, onResetEditPage } = useConsultaExtraccionStore();
   const { user } = useUserStore();
+
+  const titlePage = () => {
+    if (id_consulta_extraccion !== 0 && editPage === false) {
+      return 'Consultar Query Extraccion';
+    };
+    if (id_consulta_extraccion !== 0 && editPage === true) {
+      return 'Editar Consulta Extraccion';
+    };
+    if (id_consulta_extraccion === 0 && editPage === true) {
+      return 'Crear Nueva Consulta de Extracción';
+    };
+  }
 
   useEffect(() => {
     sigbpsApi.get('/conexion_db/getConexionDBData')
@@ -79,16 +92,14 @@ export const CreateConsultExtractionPage = () => {
     setConexionElasticSeleccionada(selectedId || null);
   };
 
-  console.log(consulta);
-
   const handleCreateConsultaExtraction = () => {
+    console.log('data_stream', consulta?.data_stream);
+    console.log('use_columns_value', consulta?.use_columns_value);
     if (
       !conexionDBSeleccionada ||
       !consulta?.consulta_data ||
       !consulta?.transformacion_data ||
       !consulta?.index_data ||
-      !consulta?.data_stream ||
-      !consulta?.use_columns_value ||
       !consulta?.type ||
       !consulta?.tracking_columns ||
       !conexionElasticSeleccionada
@@ -100,8 +111,8 @@ export const CreateConsultExtractionPage = () => {
         consulta_data: consulta.consulta_data,
         transformacion_data: consulta.transformacion_data,
         index_data: consulta.index_data,
-        data_stream: consulta.data_stream,
-        use_columns_value: consulta.use_columns_value,
+        data_stream: 'false',
+        use_columns_value: 'true',
         type: consulta.type,
         tracking_columns: consulta.tracking_columns,
         id_conexion_elastic: conexionElasticSeleccionada,
@@ -127,8 +138,6 @@ export const CreateConsultExtractionPage = () => {
       !consulta?.consulta_data ||
       !consulta?.transformacion_data ||
       !consulta?.index_data ||
-      !consulta?.data_stream ||
-      !consulta?.use_columns_value ||
       !consulta?.type ||
       !consulta?.tracking_columns ||
       !consulta?.id_conexion_elastic ||
@@ -143,8 +152,8 @@ export const CreateConsultExtractionPage = () => {
         consulta_data: consulta.consulta_data,
         transformacion_data: consulta.transformacion_data,
         index_data: consulta.index_data,
-        data_stream: consulta.data_stream,
-        use_columns_value: consulta.use_columns_value,
+        data_stream: 'false',
+        use_columns_value: 'true',
         type: consulta.type,
         tracking_columns: consulta.tracking_columns,
         id_conexion_elastic: conexionElasticSeleccionada || consulta.id_conexion_elastic,
@@ -179,7 +188,7 @@ export const CreateConsultExtractionPage = () => {
               <Row>
                 <Col>
                   <CustomTitle 
-                    title={id_consulta_extraccion ? 'Editar Consulta' : 'Crear Nueva Consulta de Extracción'}
+                    title={titlePage() as string}
                   />
                 </Col>
               </Row>
@@ -192,6 +201,7 @@ export const CreateConsultExtractionPage = () => {
                     onClick={() => {
                       window.history.back();
                       onResetConsultaExtraccion();
+                      onResetEditPage();
                     }}
                   >
                     <FaAngleLeft/> Volver
@@ -225,6 +235,7 @@ export const CreateConsultExtractionPage = () => {
                     <Form.Select
                       onChange={handleSelectConexionDB}
                       value={conexionDBSeleccionada || consulta?.id_conexion_db}
+                      disabled={editPage === false}
                     >
                       <option value="">--Seleccione la empresa--</option>
                       {
@@ -257,6 +268,7 @@ export const CreateConsultExtractionPage = () => {
                       rows={10} 
                       value={consulta?.consulta_data}
                       onChange={(e) => setConsulta({ ...consulta, consulta_data: e.target.value })}
+                      disabled={editPage === false}
                     />
                   </Form.Group>
                 </Col>
@@ -277,6 +289,7 @@ export const CreateConsultExtractionPage = () => {
                       rows={10} 
                       value={consulta?.transformacion_data}
                       onChange={(e) => setConsulta({ ...consulta, transformacion_data: e.target.value })}
+                      disabled={editPage === false}
                     />
                   </Form.Group>
                 </Col>
@@ -296,6 +309,7 @@ export const CreateConsultExtractionPage = () => {
                       type='text'
                       value={consulta?.index_data}
                       onChange={(e) => setConsulta({ ...consulta, index_data: e.target.value })}
+                      disabled={editPage === false}
                     />
                   </Form.Group>
                 </Col>
@@ -304,26 +318,22 @@ export const CreateConsultExtractionPage = () => {
                   <Form.Group className='mb-4'>
                     <Form.Label>
                       <CustomTooltip
-                        text=""
+                        text="Indica si los datos a extraer son de tipo log o similares"
                         placement="top"
                         isButton={false}
                       >
                         <CustomAsterisk/> Data Stream <FaRegCircleQuestion />
                       </CustomTooltip>
                     </Form.Label>
-                    <Form.Select
+                    <Form.Control
                       defaultValue={
                         id_consulta_extraccion 
                           ? consulta?.data_stream 
                           : 'false'
                       }
                       value={consulta?.data_stream}
-                      onChange={(e) => setConsulta({ ...consulta, data_stream: e.target.value })}
-                    >
-                      <option value="">--Seleccione Data Stream--</option>
-                      <option value="true">TRUE</option>
-                      <option value="false">FALSE</option>
-                    </Form.Select>
+                      disabled
+                    />
                   </Form.Group>
                 </Col>
 
@@ -331,26 +341,22 @@ export const CreateConsultExtractionPage = () => {
                   <Form.Group className='mb-4'>
                     <Form.Label>
                       <CustomTooltip
-                        text=""
+                        text="Tomar el cuenta el primary key de la columna"
                         placement="top"
                         isButton={false}
                       >
                         <CustomAsterisk/> Use Columns Value <FaRegCircleQuestion />
                       </CustomTooltip>
                     </Form.Label>
-                    <Form.Select
+                    <Form.Control
                       defaultValue={
                         id_consulta_extraccion 
                           ? consulta?.use_columns_value 
                           : 'true'
                       }
                       value={consulta?.use_columns_value}
-                      onChange={(e) => setConsulta({ ...consulta, use_columns_value: e.target.value })}
-                    >
-                      <option value="">--Seleccione Use Columns Value--</option>
-                      <option value="true">TRUE</option>
-                      <option value="false">FALSE</option>
-                    </Form.Select>
+                      disabled
+                    />
                   </Form.Group>
                 </Col>
 
@@ -369,6 +375,7 @@ export const CreateConsultExtractionPage = () => {
                       type='text'
                       value={consulta?.type}
                       onChange={(e) => setConsulta({ ...consulta, type: e.target.value })}
+                      disabled={editPage === false}
                     />
                   </Form.Group>
                 </Col>
@@ -388,6 +395,7 @@ export const CreateConsultExtractionPage = () => {
                       type='text'
                       value={consulta?.tracking_columns}
                       onChange={(e) => setConsulta({ ...consulta, tracking_columns: e.target.value })}
+                      disabled={editPage === false}
                     />
                   </Form.Group>
                 </Col>
@@ -406,6 +414,7 @@ export const CreateConsultExtractionPage = () => {
                     <Form.Select
                       onChange={handleSelectConexionElastic}
                       value={conexionElasticSeleccionada || consulta?.id_conexion_elastic}
+                      disabled={editPage === false}
                     >
                       <option value="">--Seleccione la conexion Elastic Search--</option>
                       {
@@ -478,14 +487,22 @@ export const CreateConsultExtractionPage = () => {
                 </Col>
               </Row>
 
-              <Button 
-                size='lg' 
-                className="mb-2 w-100" 
-                variant='success'
-                onClick={id_consulta_extraccion ? handleUpdateConsultaExtraction : handleCreateConsultaExtraction}
-              >
-                { id_consulta_extraccion ? 'Actualizar Consulta' : 'Crear Consulta' }
-              </Button>
+              {
+                editPage === true
+                ? (
+                  <Button 
+                    size='lg' 
+                    className="mb-2 w-100" 
+                    variant='success'
+                    onClick={id_consulta_extraccion ? handleUpdateConsultaExtraction : handleCreateConsultaExtraction}
+                  >
+                    { id_consulta_extraccion ? 'Actualizar Consulta' : 'Crear Consulta' }
+                  </Button>
+                )
+                : (
+                  null
+                )
+              }
             </Container>
           )
       }

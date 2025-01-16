@@ -254,7 +254,7 @@ export const CreateCompanyPage = () => {
                                 placement='top'
                                 icon={<EditIcon />}
                                 color="success"
-                                style={{marginRight: '10px'}}
+                                style={{marginRight: '10px', marginBottom: '10px'}}
                                 onclick={() => {
                                   setIdEmpresa(empresa.id_empresa);
                                   setShowModal(true);

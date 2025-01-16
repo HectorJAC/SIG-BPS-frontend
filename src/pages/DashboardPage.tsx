@@ -22,9 +22,8 @@ export const DashboardPage = () => {
       .then((response) => {
         setDashboardData(response.data);
       })
-      .catch((error) => {
-        console.log(error);
-        setNoData('No hay datos para mostrar');
+      .catch(() => {
+        setNoData('No hay dashboards para mostrar');
       });
     }
   }, []);

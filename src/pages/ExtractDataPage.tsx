@@ -14,6 +14,11 @@ import { CustomTooltip } from "../components/CustomTooltip";
 import { FaRegCircleQuestion } from "react-icons/fa6";
 import { ElkUbicationNoPaginatedProps } from "../interfaces/elkUbicationInterface";
 
+interface EmpresaProps {
+  id_empresa: number;
+  nombre_empresa: string;
+}
+
 export const ExtractDataPage = () => {
   const navigate = useNavigate();
   const [consultas, setConsultas] = useState<ConsultExtractionProps>();
@@ -26,8 +31,21 @@ export const ExtractDataPage = () => {
   const [idQueryExtraction, setIdQueryExtraction] = useState<number>();
   const [elkData, setElkData] = 
     useState<ElkUbicationNoPaginatedProps>({} as ElkUbicationNoPaginatedProps);
+  const [searchConsultaExtraccion, seatSearchConsultaExtraccion] = useState<string>('');
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
 
-  const { onAddConsultaExtraccion } = useConsultaExtraccionStore();
+  const { onAddConsultaExtraccion, onChangeEditPage } = useConsultaExtraccionStore();
+
+  useEffect(() => {
+    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
+      .then((response) => {
+        setEmpresas(response.data);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      });
+  }, []);
 
   useEffect(() => {
     sigbpsApi.get('/ubicacion_elk/getElkById', {
@@ -70,11 +88,11 @@ export const ExtractDataPage = () => {
   useEffect(() => {
     if (showModalExtractData) {
       setIsLoading(true);
-    sigbpsApi.get('consulta_extraccion/getConsultaExtraccionById', {
-      params: {
-        id_consulta_extraccion: idQueryExtraction
-      }
-    })
+      sigbpsApi.get('consulta_extraccion/getConsultaExtraccionById', {
+        params: {
+          id_consulta_extraccion: idQueryExtraction
+        }
+      })
       .then((response) => {
         setConsultExtractionModal(response.data);
         setIsLoading(false); 
@@ -99,6 +117,7 @@ export const ExtractDataPage = () => {
 
   const handleEditConexion = (id_conexion_extraccion:number) => {
     onAddConsultaExtraccion(id_conexion_extraccion);
+    onChangeEditPage();
     navigate('/create_consult_extraction');
   };
 
@@ -135,6 +154,44 @@ export const ExtractDataPage = () => {
       });
   };
 
+  const handleSearchConsultaExtraccion = (searchConsultaExtraccionParameter?: string) => {
+    setIsLoading(true);
+    if (searchConsultaExtraccion === '' && searchConsultaExtraccionParameter === undefined) {
+      getAllConsultas();
+      setIsLoading(false);  
+    } else {
+      sigbpsApi.get('/consulta_extraccion/searchConsultaExtraccion', {
+        params: {
+          search: searchConsultaExtraccion || searchConsultaExtraccionParameter,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setConsultas(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(`${error.response.data.message}`);
+          setIsLoading(false);
+      })
+    };
+  };
+
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+  
+    const empresaSeleccionada = empresas.find(
+      (empresa) => empresa.id_empresa === selectedId
+    );
+  
+    if (empresaSeleccionada) {
+      handleSearchConsultaExtraccion(empresaSeleccionada.nombre_empresa);
+    } else {
+      getAllConsultas();
+    }
+  };
+
   return (
     <Layout>
       {
@@ -159,13 +216,39 @@ export const ExtractDataPage = () => {
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
-                      placeholder="Buscar Consulta de Extraccion" 
+                      placeholder="Buscar Consulta de Extraccion"
+                      value={searchConsultaExtraccion}
+                      onChange={(e) => seatSearchConsultaExtraccion(e.target.value)}
                     />
                     <Button 
                       variant="success" 
+                      onClick={() => handleSearchConsultaExtraccion()}
                     >
                       Buscar
                     </Button>
+                  </div>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={4}>
+                  <div className="input-group mb-3">
+                  <Form.Select
+                      onChange={handleSelectEmpresa}
+                      value={empresaSeleccionada || ''} 
+                    >
+                      <option value="">--Seleccione la empresa--</option>
+                      {
+                        empresas?.map((empresa) => (
+                          <option 
+                            key={empresa.id_empresa} 
+                            value={empresa.id_empresa}
+                          >
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))
+                      }
+                    </Form.Select>
                   </div>
                 </Col>
               </Row>

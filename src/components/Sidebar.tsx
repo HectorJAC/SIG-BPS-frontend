@@ -63,6 +63,18 @@ export const Sidebar:FC = () => {
             <Accordion.Item eventKey="3">
               <Accordion.Header className="sidebar-header">Configuración General</Accordion.Header>
                 <CustomSideBarItem 
+                  linkText="Crear Gerente"
+                  linkPath="/register"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Crear Gerente')}
+                />
+                <CustomSideBarItem 
+                  linkText="Crear Administrador"
+                  linkPath="/register_admin"
+                  activeOption={state.activeOption}
+                  handleActiveOption={() => handleActiveOption('Crear Administrador')}
+                />
+                <CustomSideBarItem 
                   linkText="Registrar Empresas"
                   linkPath="/register_company"
                   activeOption={state.activeOption}

@@ -1,7 +1,7 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
 import { ActivateIcon, EditIcon, InactiveIcon } from "../utils/iconButtons";
@@ -11,14 +11,32 @@ import { CustomTitle } from "../components/CustomTitle";
 import { ConsultExtractionProps } from "../interfaces/consultExtractionInterface";
 import { useConsultaExtraccionStore } from "../store/consultaExtractionStore";
 
+interface EmpresaProps {
+  id_empresa: number;
+  nombre_empresa: string;
+}
+
 export const ConsultExtractionPage = () => {
   const navigate = useNavigate();
   const [consultas, setConsultas] = useState<ConsultExtractionProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchConsultaExtraccion, seatSearchConsultaExtraccion] = useState<string>('');
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
 
   const { onAddConsultaExtraccion } = useConsultaExtraccionStore();
+
+  useEffect(() => {
+    sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
+      .then((response) => {
+        setEmpresas(response.data);
+      })
+      .catch((error) => {
+        toast.error(error.response.data.message);
+      });
+  }, []);
 
   const getAllConsultas = useCallback((pageNumber = 1) => {
     setIsLoading(true);
@@ -61,6 +79,44 @@ export const ConsultExtractionPage = () => {
     navigate('/create_consult_extraction');
   };
 
+  const handleSearchConsultaExtraccion = (searchConsultaExtraccionParameter?: string) => {
+    setIsLoading(true);
+    if (searchConsultaExtraccion === '' && searchConsultaExtraccionParameter === undefined) {
+      getAllConsultas();
+      setIsLoading(false);  
+    } else {
+      sigbpsApi.get('/consulta_extraccion/searchConsultaExtraccion', {
+        params: {
+          search: searchConsultaExtraccion || searchConsultaExtraccionParameter,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setConsultas(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(`${error.response.data.message}`);
+          setIsLoading(false);
+      })
+    };
+  };
+
+  const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedId = parseInt(e.target.value);
+    setEmpresaSeleccionada(selectedId || null);
+  
+    const empresaSeleccionada = empresas.find(
+      (empresa) => empresa.id_empresa === selectedId
+    );
+  
+    if (empresaSeleccionada) {
+      handleSearchConsultaExtraccion(empresaSeleccionada.nombre_empresa);
+    } else {
+      getAllConsultas();
+    }
+  };
+
   return (
     <Layout>
       {
@@ -98,13 +154,39 @@ export const ConsultExtractionPage = () => {
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
-                      placeholder="Buscar Consulta de Extraccion" 
+                      placeholder="Buscar Consulta de Extraccion"
+                      value={searchConsultaExtraccion}
+                      onChange={(e) => seatSearchConsultaExtraccion(e.target.value)}
                     />
                     <Button 
                       variant="success" 
+                      onClick={() => handleSearchConsultaExtraccion()}
                     >
                       Buscar
                     </Button>
+                  </div>
+                </Col>
+              </Row>
+
+              <Row>
+                <Col md={4}>
+                  <div className="input-group mb-3">
+                  <Form.Select
+                      onChange={handleSelectEmpresa}
+                      value={empresaSeleccionada || ''} 
+                    >
+                      <option value="">--Seleccione la empresa--</option>
+                      {
+                        empresas?.map((empresa) => (
+                          <option 
+                            key={empresa.id_empresa} 
+                            value={empresa.id_empresa}
+                          >
+                            {empresa.nombre_empresa}
+                          </option>
+                        ))
+                      }
+                    </Form.Select>
                   </div>
                 </Col>
               </Row>

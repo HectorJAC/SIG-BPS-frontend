@@ -40,7 +40,11 @@ export const CompanyModal:FC<CompanyModalProps> = ({
   }, [idEmpresa, showModal]);
 
   const handleCreateCompany = () => {
-    if (companyData.nombre_empresa === '') {
+    if (
+        companyData.nombre_empresa === '' ||
+        companyData.rnc_empresa === '' ||
+        companyData.telefono_empresa === ''
+    ) {
       toast.error('Todos los campos son obligatorios');
       return;
     } else {
@@ -76,32 +80,41 @@ export const CompanyModal:FC<CompanyModalProps> = ({
   };
 
   const handleUpdateCompany = () => {
-    sigbpsApi.put('/empresas/updateCompany', {
-      id_empresa: companyData.id_empresa,
-      nombre_empresa: companyData.nombre_empresa,
-      rnc_empresa: companyData.rnc_empresa,
-      telefono_empresa: companyData.telefono_empresa,
-      usuario_actualizacion: user.id_usuario,
-      fecha_actualizacion: formatterDateToBackend(new Date().toString()),
-    })
-      .then((response) => {
-        toast.success(response.data.message);
-        onCreateCompanySuccess();
+    if (
+      companyData.nombre_empresa === '' ||
+      companyData.rnc_empresa === '' ||
+      companyData.telefono_empresa === ''
+    ) {
+      toast.error('Todos los campos son obligatorios');
+      return;
+    } else {
+      sigbpsApi.put('/empresas/updateCompany', {
+        id_empresa: companyData.id_empresa,
+        nombre_empresa: companyData.nombre_empresa,
+        rnc_empresa: companyData.rnc_empresa,
+        telefono_empresa: companyData.telefono_empresa,
+        usuario_actualizacion: user.id_usuario,
+        fecha_actualizacion: formatterDateToBackend(new Date().toString()),
       })
-      .catch((error) => {
-        toast.error(error.response.data.message);
-      });
+        .then((response) => {
+          toast.success(response.data.message);
+          onCreateCompanySuccess();
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+        });
 
-    // Limpiar los campos del formulario
-    setCompanyData({} as CompanyProps);
+      // Limpiar los campos del formulario
+      setCompanyData({} as CompanyProps);
 
-    // Cerrar el modal
-    setShowModal(false);
-    resetCreateCompanySuccess()
+      // Cerrar el modal
+      setShowModal(false);
+      resetCreateCompanySuccess();
+    }
   };
 
   return (
-    <Modal show={showModal} onHide={setShowModal}>
+    <Modal show={showModal} onHide={handleCloseModal}>
       <Modal.Header closeButton>
         <Modal.Title>
           {
@@ -146,10 +159,10 @@ export const CompanyModal:FC<CompanyModalProps> = ({
           </Form.Group>
 
           <Form.Group>
-            <Form.Label>Telefono de la Empresa</Form.Label>
+            <Form.Label><CustomAsterisk /> Telefono de la Empresa</Form.Label>
             <Form.Control 
               type="text"
-              placeholder="Ingrese el rnc de la empresa"
+              placeholder="Ingrese el telefono de la empresa"
               value={companyData?.telefono_empresa}
               onChange={(e) => setCompanyData({...companyData, telefono_empresa: e.target.value})}
               className="mb-2"

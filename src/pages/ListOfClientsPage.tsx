@@ -72,15 +72,15 @@ export const ListOfClientsPage = () => {
     }
   };
 
-  const handleSearchUser = (searchUser?: string) => {
+  const handleSearchUser = (searchUserParameter?: string) => {
     setIsLoading(true);
-    if (searchUser === '') {
+    if (searchUser === '' && searchUserParameter === undefined) {
       getAllUsers();
       setIsLoading(false);  
     } else {
       sigbpsApi.get('/usuarios/searchUser', {
         params: {
-          search: searchUser,
+          search: searchUser || searchUserParameter,
           estado: 'A'
         }
       })
@@ -98,13 +98,16 @@ export const ListOfClientsPage = () => {
   const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(e.target.value);
     setEmpresaSeleccionada(selectedId || null);
-    empresas.filter((empresa) => {
-      if (empresa.id_empresa === selectedId) {
-        handleSearchUser(empresa.nombre_empresa);
-      } else {
-        getAllUsers();
-      };
-    });
+  
+    const empresaSeleccionada = empresas.find(
+      (empresa) => empresa.id_empresa === selectedId
+    );
+  
+    if (empresaSeleccionada) {
+      handleSearchUser(empresaSeleccionada.nombre_empresa);
+    } else {
+      getAllUsers();
+    }
   };
 
   const handleShowConsultUserModal = (idUsuario: number) => {

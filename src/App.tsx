@@ -25,14 +25,14 @@ import { CreateConsultExtractionPage } from "./pages/CreateConsultExtractionPage
 import { ExtractDataPage } from "./pages/ExtractDataPage";
 import { RegisterAdminPage } from "./pages/RegisterAdminPage";
 import { DashboardsUsersPage } from "./pages/DashboardsUsersPage";
+import { QueryDashboardPage } from "./pages/QueryDashboardPage";
+import { AddQueryToDashboardPage } from "./pages/AddQueryToDashboardPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path='/login' element={<Login />} />
-        <Route path='/register' element={<RegisterPage />} />
-        <Route path='/register_admin' element={<RegisterAdminPage />} />
         <Route path='/forget_password' element={<ForgetPasswordPage />} />
         
         <Route element={<ProtectedRoute />} >
@@ -57,6 +57,10 @@ function App() {
           <Route path='/create_consult_extraction' element={<CreateConsultExtractionPage />} />
           <Route path='/extract_data' element={<ExtractDataPage />} />
           <Route path='/dashboards_by_users' element={<DashboardsUsersPage />} />
+          <Route path='/related_query_dashboard' element={<QueryDashboardPage />} />
+          <Route path='/add_query_to_dashboard' element={<AddQueryToDashboardPage />} />
+          <Route path='/register' element={<RegisterPage />} />
+          <Route path='/register_admin' element={<RegisterAdminPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

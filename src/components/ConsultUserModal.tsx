@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from "react";
 import { Button, Col, Modal, Row } from "react-bootstrap";
 import { sigbpsApi } from "../api/baseApi";
 import { UserProps } from "../interfaces/userInterface";
+import { formatterDate } from "../utils/formatters";
 
 interface ConsultUserModalProps {
   showModal: boolean;
@@ -80,14 +81,20 @@ export const ConsultUserModal:FC<ConsultUserModalProps> = ({
           </Col>
           <Col md={6}>
             <strong>Fecha Insercion:</strong>
-            <p>{userData.fecha_insercion}</p>
+            <p>{formatterDate(userData.fecha_insercion)}</p>
           </Col>
         </Row>
 
         <Row className="mb-3">
           <Col md={6}>
             <strong>Fecha Actualizacion:</strong>
-            <p>{userData.fecha_actualizacion}</p>
+            <p>
+              {
+                userData.fecha_actualizacion
+                  ? formatterDate(userData.fecha_actualizacion)
+                  : null
+              }
+            </p>
           </Col>
         </Row>
       </Modal.Body>

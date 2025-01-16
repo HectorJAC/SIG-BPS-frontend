@@ -34,14 +34,14 @@ export const RequestChartsPage = () => {
         <Row>
           <Col>
             <h1 className="mt-3 mb-4">
-              Solicitar Gráficas
+              Solicitar Gráficos
             </h1>
           </Col>
         </Row>
 
         <Row>
           <Col>
-            <h2>Digite los datos de las gráficas que requiere</h2>
+            <h2>Digite los datos de los gráficos que requiere</h2>
           </Col>
         </Row>
 

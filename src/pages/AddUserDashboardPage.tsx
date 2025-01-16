@@ -26,6 +26,7 @@ export const AddUserDashboardPage:FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [idDeleteUserDashboard, setIdDeleteUserDashboard] = useState<number>();
+  const [searchDashboard, setSearchDashboard] = useState<string>('');
 
   const { user } = useUserStore();
   const { id_user_dashboard, onResetUserDashboard } = useUserDashboardStore();
@@ -114,6 +115,30 @@ export const AddUserDashboardPage:FC = () => {
     });
   };
 
+  const handleSearchDashboard = (searchDashboardParameter?: string) => {
+    setIsLoading(true);
+    if (searchDashboard === '' || searchDashboardParameter === '') {
+      allUserDashboards();
+      setIsLoading(false);  
+    } else {
+      sigbpsApi.get('/dashboard_kibana/searchDashboardUser', {
+        params: {
+          search: searchDashboard || searchDashboardParameter,
+          id_usuario: id_user_dashboard,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setDashboards(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(`${error.response.data.message}`);
+          setIsLoading(false);
+      })
+    };
+  };
+
   return (
     <Layout>
       {
@@ -165,9 +190,12 @@ export const AddUserDashboardPage:FC = () => {
                     <Form.Control 
                       type="text" 
                       placeholder="Buscar Dashboard" 
+                      value={searchDashboard}
+                      onChange={(e) => setSearchDashboard(e.target.value)}
                     />
                     <Button 
-                      variant="success" 
+                      variant="success"
+                      onClick={() => handleSearchDashboard()} 
                     >
                       Buscar
                     </Button>
@@ -188,7 +216,7 @@ export const AddUserDashboardPage:FC = () => {
                     </thead>
                     <tbody>
                       {
-                        dashboards?.dashboardsUsuario.map((dash) => (
+                        dashboards?.dashboardsUsuario?.map((dash) => (
                           <tr key={dash?.id_dashboard_kibana}>
                             <td>{dash?.id_dashboard_kibana}</td>
                             <td>{dash?.nombre_dashboard}</td>

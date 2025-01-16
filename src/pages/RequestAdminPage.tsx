@@ -13,16 +13,22 @@ import { updateRequestStatus } from "../api/pedidos/updateRequestStatus";
 import { sigbpsApi } from "../api/baseApi";
 import { UserProps } from "../interfaces/userInterface";
 import { updateRequestUser } from "../api/pedidos/updateRequestUser";
+import { CustomBasicModal } from "../components/CustomBasicModal";
+import { ConsultRequestModal } from "../components/ConsultRequestModal";
+import '../styles/pages/requestAdminPageStyle.css';
 
 export const RequestAdminPage = () => {
   const [requests, setRequests] = useState<RequestProps[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  // const [showModal, setShowModal] = useState(false);
-  const [searchRequest, setSearchRequest] = useState('');
+  const [showModal, setShowModal] = useState(false);
   const [cantRequestTrabajando, setCantRequestTrabajando] = useState<any>();
   const [cantRequestPendiente, setCantRequestPendiente] = useState<any>();
   const [cantRequestCompletado, setCantRequestCompletado] = useState<any>();
   const [admins, setAdmins] = useState<UserProps[]>([]);
+  const [searchPedido, setSearchPedido] = useState('');
+  const [selectedUserRequestId, setSelectedUserRequestId] = useState<number>();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [idDeletePedido, setIdDeletePedido] = useState<number>();
 
   const allRequests = useCallback(() => {
     setIsLoading(true);
@@ -80,14 +86,18 @@ export const RequestAdminPage = () => {
   };
 
   useEffect(() => {
-    sigbpsApi.get('/usuarios/getAllAdmins')
+    sigbpsApi.get('/usuarios/getAllAdmins', {
+      params: {
+        estado: 'A'
+      }
+    })
       .then((response) => {
         setAdmins(response.data);
       })
       .catch(() => {
         toast.error('Error al obtener los administradores');
       });
-  }, [])
+  }, []);
 
   const handleUpdateRequestStatus = (id_pedido:number, estado_pedido:string) => {
     setIsLoading(true);
@@ -127,31 +137,55 @@ export const RequestAdminPage = () => {
       });
   };
 
-  // const handleShowModal = (id_gerente: number) => {
-  //   setSelectedProjectId(id_gerente);
-  //   setShowModal(true);
-  // };
+  const handleShowModal = (id_usuario_pedido: number) => {
+    setSelectedUserRequestId(id_usuario_pedido);
+    setShowModal(true);
+  };
 
-  // const handleSearchProject = () => {
-  //   setIsLoading(true);
-  //   if (searchProject === '') {
-  //     allProyects();
-  //   } else {
-  //     planificaTechApi.get('/proyectos/searchProject', {
-  //       params: {
-  //         search: searchProject
-  //       }
-  //     })
-  //       .then((response) => {
-  //         setProyects(response.data);
-  //         setIsLoading(false);
-  //       })
-  //       .catch((error) => {
-  //         toast.error(error.response.data.message);
-  //         setIsLoading(false);
-  //       })
-  //   }
-  // };
+  const handleSearchPedido = () => {
+    setIsLoading(true);
+    if (searchPedido === '') {
+      allRequests();
+    } else {
+      sigbpsApi.get('/pedidos/searchPedido', {
+        params: {
+          search: searchPedido,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setRequests(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(error.response.data.message);
+          setIsLoading(false);
+        })
+    }
+  };
+
+  const handleShowDeleteModal = (id_usuario_pedido: number) => {
+    setIdDeletePedido(id_usuario_pedido);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeletePedido = (id_usuario_pedido: number) => {
+    sigbpsApi.put('/pedidos/deletePedido', {
+      id_usuario_pedido
+    })
+      .then((response) => {
+        toast.success(response.data.message);
+        allRequests();
+        getCantRequests();
+        setShowDeleteModal(false);
+      })
+      .catch((error) => {
+        toast.error(`${error.response.data.message}`);
+        allRequests();
+        getCantRequests();
+        setShowDeleteModal(false);
+    });
+  };
 
   const renderRequestByStatus = (status:string) => {
     return requests!
@@ -163,7 +197,9 @@ export const RequestAdminPage = () => {
               Solicitud: {request.id_usuario_pedido} - Gerente: {request.nombres_usuario + ' ' + request.apellidos_usuario}
             </Card.Title>
             <Card.Text>Empresa del Gerente: {request.nombre_empresa}</Card.Text>
-            <Card.Text>Pedido: {request.descripcion_pedido}</Card.Text>
+            <Card.Text className="clamp-text">
+              Pedido: {request.descripcion_pedido}
+            </Card.Text>
             <Card.Text>
               Fecha Pedido: {
                 request.fecha_pedido === null
@@ -224,13 +260,18 @@ export const RequestAdminPage = () => {
                 marginLeft: '10px',
                 marginRight: '250px' 
               }}
+              onclick={() => handleShowModal(request.id_usuario_pedido!)}
             />
-            <CustomButton 
-              placement="top"
-              text="Inactivar"
-              icon={<InactiveIcon />}
-              color="danger"
-            />
+            {
+              request.estado_pedido === 'C' &&
+              <CustomButton 
+                placement="top"
+                text="Inactivar"
+                icon={<InactiveIcon />}
+                color="danger"
+                onclick={() => handleShowDeleteModal(request.id_usuario_pedido!)}
+              />
+            }
           </Card.Footer>
         </Card>
       ));
@@ -255,13 +296,13 @@ export const RequestAdminPage = () => {
               <div className="input-group">
                 <Form.Control
                   type="text"
-                  placeholder="Buscar por ID de la solicitud, ID o nombre del gerente y por descripcion del pedido"
-                  value={searchRequest}
-                  onChange={(e) => setSearchRequest(e.target.value)}
+                  placeholder="Buscar solicitud"
+                  value={searchPedido}
+                  onChange={(e) => setSearchPedido(e.target.value)}
                 />
                 <Button 
                   variant="success" 
-                  // onClick={handleSearchProject}
+                  onClick={handleSearchPedido}
                 >
                   Buscar
                 </Button>
@@ -289,6 +330,22 @@ export const RequestAdminPage = () => {
               </div>
             </Col>
           </Row>
+
+          <ConsultRequestModal 
+            showModal={showModal}
+            setShowModal={() => setShowModal(false)}
+            idUsuarioPedido={selectedUserRequestId!}
+          />
+
+          <CustomBasicModal 
+            title="Eliminar Solicitud"
+            body="¿Desea eliminar la solicitud? De esta forma la solicitud no se mostrará en el tablero y no se podrá recuperar."
+            secondaryButton="Cancelar"
+            primaryButton="Aceptar"
+            showModal={showDeleteModal}
+            setShowModal={() => setShowDeleteModal(false)}
+            onClick={() => handleDeletePedido(idDeletePedido!)}
+          />
         </Container>
       )}
       <ToastContainer />

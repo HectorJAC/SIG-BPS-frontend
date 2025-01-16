@@ -72,15 +72,15 @@ export const SaveDashboardPage = () => {
     }
   };
 
-  const handleSearchDashboard = (searchDashboard?: string) => {
+  const handleSearchDashboard = (searchDashboardParameter?: string) => {
     setIsLoading(true);
-    if (searchDashboard === '') {
+    if (searchDashboard === '' || searchDashboardParameter === '') {
       allDashboards();
       setIsLoading(false);  
     } else {
       sigbpsApi.get('/dashboard_kibana/searchDashboard', {
         params: {
-          search: searchDashboard,
+          search: searchDashboard || searchDashboardParameter,
           estado: 'A'
         }
       })
@@ -96,17 +96,18 @@ export const SaveDashboardPage = () => {
   };
 
   const handleSelectEmpresa = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedId = parseInt(e.target.value) || null;
+    const selectedId = parseInt(e.target.value);
     setEmpresaSeleccionada(selectedId || null);
-    console.log(selectedId);
-    console.log(empresaSeleccionada);
-    empresas.filter((empresa) => {
-      if (empresa.id_empresa === selectedId) {
-        handleSearchDashboard(empresa.nombre_empresa);
-      } else if (selectedId === null) {
-        allDashboards();
-      }
-    });
+  
+    const empresaSeleccionada = empresas.find(
+      (empresa) => empresa.id_empresa === selectedId
+    );
+  
+    if (empresaSeleccionada) {
+      handleSearchDashboard(empresaSeleccionada.nombre_empresa);
+    } else {
+      allDashboards();
+    }
   };
   
   const handleCloseModal = () => {
@@ -243,7 +244,7 @@ export const SaveDashboardPage = () => {
                                   setDashboardInModal(dash);
                                   setShowModal(true);
                                 }}
-                                style={{ marginRight: '5px' }}
+                                style={{ marginRight: '5px', marginBottom: '5px' }}
                               />
                               <CustomButton
                                 text='Editar'

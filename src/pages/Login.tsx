@@ -66,14 +66,6 @@ export const Login = () => {
     navigate('/forget_password');
   };
 
-  const gotoRegisterUser = () => {
-    navigate('/register');
-  };
-
-  const gotoRegisterAdmin = () => {
-    navigate('/register_admin');
-  };
-
   return (
     <Background> 
       <form onSubmit={handleLogin}>
@@ -122,22 +114,6 @@ export const Login = () => {
                     onClick={gotoForgetPassword}
                   >
                     ¿Ha olvidado su contraseña?
-                  </Form.Text>
-
-                  <Form.Text
-                    className='text-center text-success mb-3'
-                    style={{ cursor: 'pointer' }}
-                    onClick={gotoRegisterUser}
-                  >
-                    ¿No tienes un usuario?, Crea uno
-                  </Form.Text>
-
-                  <Form.Text
-                    className='text-center text-success'
-                    style={{ cursor: 'pointer' }}
-                    onClick={gotoRegisterAdmin}
-                  >
-                    ¿Eres un nuevo administrador?, Crea un usuario
                   </Form.Text>
                 </Card.Body>
               </Card>
