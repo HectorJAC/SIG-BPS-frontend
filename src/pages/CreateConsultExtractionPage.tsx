@@ -36,7 +36,7 @@ export const CreateConsultExtractionPage = () => {
 
   const titlePage = () => {
     if (id_consulta_extraccion !== 0 && editPage === false) {
-      return 'Consultar Query Extraccion';
+      return 'Consultar Query de Extraccion';
     };
     if (id_consulta_extraccion !== 0 && editPage === true) {
       return 'Editar Consulta Extraccion';
