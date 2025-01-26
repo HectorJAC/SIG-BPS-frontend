@@ -35,13 +35,20 @@ export const ForgetPasswordPage = () => {
         username: username,
         password: newPassword
       })
-        .then(response => {
-          toast.success(`${response.data.message}`);
-          setTimeout(() => {
-            navigate('/login');
-          }, 2000);
+        .then((response) => {
+          if (response.data.usuario.estado === 'I') {
+            toast.error(response.data.message);
+            return;
+          };
+
+          if (response.data.usuario.estado === 'A') {
+            toast.success(`${response.data.message}`);
+            setTimeout(() => {
+              navigate('/login');
+            }, 2000);
+          };
         })
-        .catch(error => {
+        .catch((error) => {
           toast.error(`${error.response.data.message}`);
         });
     } 

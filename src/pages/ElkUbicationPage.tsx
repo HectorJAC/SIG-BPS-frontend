@@ -1,7 +1,7 @@
-import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
+import { Button, Col, Container, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
 import { EditIcon } from "../utils/iconButtons";
@@ -9,7 +9,6 @@ import { ElkUbicationProps } from "../interfaces/elkUbicationInterface";
 import { getAllElkUbicacion } from "../api/elk_ubicacion/findAllElkUbicacion";
 import { formatterDate } from "../utils/formatters";
 import { ElkUbicationModal } from "../components/ElkUbicationModal";
-import { sigbpsApi } from "../api/baseApi";
 import { useUbicationElkStore } from "../store/ubicationElk";
 
 export const ElkUbicationPage = () => {
@@ -17,7 +16,6 @@ export const ElkUbicationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchElkUbicacion, setSearchElkUbicacion] = useState<string>('');
   const [idElkUbication, setIdElkUbication] = useState<number>();
   const [showModal, setShowModal] = useState(false);
   const { editUbicationElkSuccess, resetEditUbicationElkSuccess } = useUbicationElkStore();
@@ -61,28 +59,6 @@ export const ElkUbicationPage = () => {
     }
   };
 
-  const handleSearchElkUbicacion = () => {
-    setIsLoading(true);
-    if (searchElkUbicacion === '') {
-      getAllElk();
-      setIsLoading(false);  
-    } else {
-      sigbpsApi.get('/ubicacion_elk/searchElkUbication', {
-        params: {
-          search: searchElkUbicacion,
-        }
-      })
-        .then((response) => {
-          setElkUbication(response.data);
-          setIsLoading(false);
-        })
-        .catch((error) => {
-          toast.error(`${error.response.data.message}`);
-          setIsLoading(false);
-      })
-    };
-  };
-
   const handleCloseModal = () => {
     setShowModal(false);
     setIdElkUbication(undefined);
@@ -105,25 +81,6 @@ export const ElkUbicationPage = () => {
                   <h1 className="mt-3 mb-4">
                     Ubicación de las Herramientas ELK Stack
                   </h1>
-                </Col>
-              </Row>
-
-              <Row>
-                <Col>
-                  <div className="input-group">
-                    <Form.Control 
-                      type="text" 
-                      placeholder="Buscar Herramienta ELK"
-                      value={searchElkUbicacion}
-                      onChange={(e) => setSearchElkUbicacion(e.target.value)} 
-                    />
-                    <Button 
-                      variant="success" 
-                      onClick={handleSearchElkUbicacion}
-                    >
-                      Buscar
-                    </Button>
-                  </div>
                 </Col>
               </Row>
 

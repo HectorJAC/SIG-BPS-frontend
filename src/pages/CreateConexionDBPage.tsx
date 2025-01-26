@@ -9,6 +9,9 @@ import { CustomAsterisk } from "../components/CustomAsterisk";
 import { FaAngleLeft } from "react-icons/fa";
 import { useConexionDBStore } from "../store/conexionDBStore";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "../store/userStore";
+import { formatterDateToBackend } from "../utils/formatters";
+import { showState } from "../utils/showState";
 
 interface EmpresaProps {
   id_empresa: number;
@@ -23,6 +26,7 @@ export const CreateConexionDBPage = () => {
   const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
 
   const { id_conexion_db, onResetConexionDB } = useConexionDBStore();
+  const { user } = useUserStore();
 
   useEffect(() => {
     sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
@@ -45,8 +49,7 @@ export const CreateConexionDBPage = () => {
         setConexion(response.data);
         setIsLoading(false);
       })
-      .catch((error) => {
-        console.log(error);
+      .catch(() => {
         setIsLoading(false);
       });
   }, [id_conexion_db]);
@@ -58,6 +61,7 @@ export const CreateConexionDBPage = () => {
 
   const handleCreateConexionDB = () => {
     if (
+      !conexion.nombre_conexion_db ||
       !conexion.conexion_driver_library ||
       !conexion.conexion_driver_class ||
       !conexion.conexion_password ||
@@ -68,12 +72,15 @@ export const CreateConexionDBPage = () => {
       toast.error('Completar todos los campos');
     } else {
       sigbpsApi.post('/conexion_db/createConexionDb', {
+        nombre_conexion_db: conexion.nombre_conexion_db,
         conexion_driver_library: conexion.conexion_driver_library,
         conexion_driver_class: conexion.conexion_driver_class,
         conexion_password: conexion.conexion_password,
         conexion_string: conexion.conexion_string,
         conexion_user: conexion.conexion_user,
         id_empresa: empresaSeleccionada,
+        usuario_insercion: user?.id_usuario,
+        fecha_insercion: formatterDateToBackend(new Date().toString()),
         estado: 'A'
       })
       .then((response) => {
@@ -89,23 +96,29 @@ export const CreateConexionDBPage = () => {
   };
 
   const handleUpdateConexionDB = () => {
+    console.log(conexion);
+    console.log(empresaSeleccionada);
     if (
+      !conexion.nombre_conexion_db ||
       !conexion.conexion_driver_library ||
       !conexion.conexion_driver_class ||
       !conexion.conexion_password ||
       !conexion.conexion_string ||
-      !conexion.conexion_user ||
-      !empresaSeleccionada
+      !conexion.conexion_user 
     ) {
       toast.error('Completar todos los campos');
     } else {
-      sigbpsApi.post('/conexion_db/updateConexionDb', {
+      sigbpsApi.put('/conexion_db/updateConexionDb', {
+        id_conexion_db: conexion.id_conexion_db,
+        nombre_conexion_db: conexion.nombre_conexion_db,
         conexion_driver_library: conexion.conexion_driver_library,
         conexion_driver_class: conexion.conexion_driver_class,
         conexion_password: conexion.conexion_password,
         conexion_string: conexion.conexion_string,
         conexion_user: conexion.conexion_user,
-        id_empresa: empresaSeleccionada,
+        id_empresa: empresaSeleccionada || conexion.id_empresa,
+        usuario_actualizacion: user?.id_usuario,
+        fecha_actualizacion: formatterDateToBackend(new Date().toString()),
         estado: 'A'
       })
       .then((response) => {
@@ -166,6 +179,15 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
+                    <Form.Label><CustomAsterisk/> Nombre Conexion DB</Form.Label>
+                    <Form.Control 
+                      type='text'
+                      value={conexion?.nombre_conexion_db}
+                      onChange={(e) => setConexion({...conexion, nombre_conexion_db: e.target.value})}
+                    />
+                  </Form.Group>
+
+                  <Form.Group className='mb-4'>
                     <Form.Label><CustomAsterisk/> Conexion Driver Library</Form.Label>
                     <Form.Control 
                       type='text'
@@ -184,11 +206,11 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
-                    <Form.Label><CustomAsterisk/> Password DB</Form.Label>
+                    <Form.Label><CustomAsterisk/> Estado</Form.Label>
                     <Form.Control 
                       type='text'
-                      value={conexion?.conexion_password}
-                      onChange={(e) => setConexion({...conexion, conexion_password: e.target.value})}
+                      disabled
+                      value={showState(conexion?.estado)}
                     />
                   </Form.Group>
                 </Col>
@@ -233,11 +255,11 @@ export const CreateConexionDBPage = () => {
                   </Form.Group>
 
                   <Form.Group className='mb-4'>
-                    <Form.Label><CustomAsterisk/> Estado</Form.Label>
+                    <Form.Label><CustomAsterisk/> Password DB</Form.Label>
                     <Form.Control 
                       type='text'
-                      disabled
-                      value={conexion?.estado}
+                      value={conexion?.conexion_password}
+                      onChange={(e) => setConexion({...conexion, conexion_password: e.target.value})}
                     />
                   </Form.Group>
                 </Col>

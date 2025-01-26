@@ -1,22 +1,26 @@
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 import { Layout } from "../layout/Layout";
 import { useCallback, useEffect, useState } from "react";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
 import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, EditIcon, InactiveIcon } from "../utils/iconButtons";
+import { ViewIcon } from "../utils/iconButtons";
 import { sigbpsApi } from "../api/baseApi";
-import { RoleProps } from "../interfaces/rolesInterface";
+import { UsersPaginatedProps } from "../interfaces/userInterface";
+import { ConsultUserModal } from "../components/ConsultUserModal";
 
-export const CreateRolPage = () => {
-  const [roles, setRoles] = useState<RoleProps>();
+export const ListOfAdminsPage = () => {
+  const [users, setUsers] = useState<UsersPaginatedProps>();
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [searchUser, setSearchUser] = useState<string>('');
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [idUserModal, setIdUserModal] = useState<number>();
 
-  const getAllRol = useCallback((pageNumber = 1) => {
+  const getAllUsers = useCallback((pageNumber = 1) => {
     setIsLoading(true);
-    sigbpsApi.get('/roles/findAllRol', {
+    sigbpsApi.get('/usuarios/getAllAdminsPagination', {
       params: {
         estado: 'A',
         page: pageNumber,
@@ -24,7 +28,7 @@ export const CreateRolPage = () => {
       }
     })
       .then((response) => {
-        setRoles(response.data);
+        setUsers(response.data);
         setCurrentPage(pageNumber);
         setTotalPages(response.data.totalPages);
         setIsLoading(false);
@@ -36,19 +40,47 @@ export const CreateRolPage = () => {
   }, []);
 
   useEffect(() => {
-    getAllRol();
-  }, [getAllRol]);
+    getAllUsers();
+  }, [getAllUsers]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      getAllRol(currentPage - 1);
+      getAllUsers(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      getAllRol(currentPage + 1);
+      getAllUsers(currentPage + 1);
     }
+  };
+
+  const handleSearchUser = () => {
+    setIsLoading(true);
+    if (searchUser === '') {
+      getAllUsers();
+      setIsLoading(false);  
+    } else {
+      sigbpsApi.get('/usuarios/searchAdmin', {
+        params: {
+          search: searchUser,
+          estado: 'A'
+        }
+      })
+        .then((response) => {
+          setUsers(response.data);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          toast.error(`${error.response.data.message}`);
+          setIsLoading(false);
+      })
+    };
+  };
+
+  const handleShowConsultUserModal = (idUsuario: number) => {
+    setShowModal(true);
+    setIdUserModal(idUsuario);
   };
 
   return (
@@ -65,32 +97,23 @@ export const CreateRolPage = () => {
               <Row>
                 <Col>
                   <h1 className="mt-3 mb-4">
-                    Crear Roles
+                    Listado de Administradores
                   </h1>
                 </Col>
               </Row>
 
-              <Row>
-                <Col md={3}>
-                  <Button 
-                    variant="success" 
-                    style={{
-                      marginBottom: '20px',
-                      marginLeft: '20px'
-                    }}
-                  >
-                    Nuevo Rol
-                  </Button>
-                </Col>
-
+              <Row className="mb-3">
                 <Col md={9}>
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
-                      placeholder="Buscar Rol" 
+                      placeholder="Buscar Usuario" 
+                      value={searchUser}
+                      onChange={(e) => setSearchUser(e.target.value)}
                     />
                     <Button 
                       variant="success" 
+                      onClick={handleSearchUser}
                     >
                       Buscar
                     </Button>
@@ -104,44 +127,41 @@ export const CreateRolPage = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Tipo Rol</th>
+                        <th>Username</th>
+                        <th>Cedula</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {
-                        roles?.roles.map((rol) => (
-                          <tr key={rol.id_rol}>
-                            <td>{rol.id_rol}</td>
-                            <td>{rol.tipo_rol}</td>
-                            <td>{rol.estado}</td>
+                        users?.usuarios?.map((usuario) => (
+                          <tr key={usuario.id_usuario}>
+                            <td>{usuario.id_usuario}</td>
+                            <td>{usuario.username}</td>
+                            <td>{usuario.cedula}</td>
+                            <td>{usuario.nombres} {usuario.apellidos}</td>
                             <td>
-                              <CustomButton
-                                text='Editar'
-                                placement='top'
-                                icon={<EditIcon />}
-                                color="success"
-                                style={{marginRight: '10px'}}
-                              />
                               {
-                                rol.estado === 'A'
-                                  ? (
-                                    <CustomButton 
-                                      text='Inactivar'
-                                      placement='top'
-                                      icon={<InactiveIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                                  : (
-                                    <CustomButton 
-                                      text='Activar'
-                                      placement='top'
-                                      icon={<ActivateIcon />}
-                                      color="danger"
-                                    />
-                                  )
+                                usuario.id_rol === 1
+                                  ? 'Administrador'
+                                  : 'Gerente'
+                              }
+                            </td>
+                            <td>{usuario.estado}</td>
+                            <td>
+                              {
+                                <CustomButton 
+                                  text='Consultar'
+                                  placement='top'
+                                  icon={<ViewIcon />}
+                                  color="success"
+                                  onclick={() => 
+                                    handleShowConsultUserModal(usuario.id_usuario!)
+                                  }
+                                />
                               }
                             </td>
                           </tr>
@@ -171,6 +191,12 @@ export const CreateRolPage = () => {
                   </Button>
                 </Col>
               </Row>
+
+              <ConsultUserModal 
+                showModal={showModal}
+                setShowModal={setShowModal}
+                idUsuario={idUserModal!}               
+              />
             </Container>
           )
       }

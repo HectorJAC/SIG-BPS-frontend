@@ -129,7 +129,7 @@ export const AdminDashboards = () => {
                     </thead>
                     <tbody>
                       {
-                        dashboards?.dashboards.map((dash) => (
+                        dashboards?.dashboards?.map((dash) => (
                           <tr key={dash?.id_dashboard_kibana}>
                             <td>{dash?.id_dashboard_kibana}</td>
                             <td>{dash?.nombre_dashboard}</td>

@@ -6,6 +6,7 @@ import { sigbpsApi } from "../api/baseApi";
 import { ElkUbicationNoPaginatedProps } from "../interfaces/elkUbicationInterface";
 import { useUserStore } from "../store/userStore";
 import { useUbicationElkStore } from "../store/ubicationElk";
+import { formatterDateToBackend } from "../utils/formatters";
 
 interface ElkUbicationModalProps {
   showModal: boolean;
@@ -21,8 +22,6 @@ export const ElkUbicationModal:FC<ElkUbicationModalProps> = ({
   const [elkData, setElkData] = useState<ElkUbicationNoPaginatedProps>({} as ElkUbicationNoPaginatedProps);
   const { user } = useUserStore();
   const { onEditUbicationElkSuccess, resetEditUbicationElkSuccess } = useUbicationElkStore();
-
-  const fechaActualizacionELK = new Date().toLocaleDateString();
 
   useEffect(() => {
     if (idElkUbicacion && showModal) {
@@ -55,7 +54,7 @@ export const ElkUbicationModal:FC<ElkUbicationModalProps> = ({
         id_elk_ubicacion: elkData.id_elk_ubicacion,
         ubicacion_elk: elkData.ubicacion_elk,
         usuario_actualizacion: user?.id_usuario,
-        fecha_actualizacion: fechaActualizacionELK
+        fecha_actualizacion: formatterDateToBackend(new Date().toString())
       })
         .then((response) => {
           toast.success(response.data.message);
@@ -81,11 +80,6 @@ export const ElkUbicationModal:FC<ElkUbicationModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <div>
-            <h5 style={{color: 'red'}}>
-              Debe colocar la ubicación de la carpeta bin de la herramienta
-            </h5>
-          </div>
           <Form.Group>
             <Form.Label><CustomAsterisk /> ID</Form.Label>
             <Form.Control 

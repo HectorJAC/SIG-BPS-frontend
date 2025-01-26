@@ -9,6 +9,9 @@ import { sigbpsApi } from "../api/baseApi";
 import { CompanyPaginatedProps } from "../interfaces/companyInteface";
 import { CompanyModal } from "../components/CompanyModal";
 import { CustomBasicModal } from "../components/CustomBasicModal";
+import { formatterDate, formatterDateToBackend } from "../utils/formatters";
+import { useUserStore } from "../store/userStore";
+import { useCompanyStore } from "../store/companyStore";
 
 export const CreateCompanyPage = () => {
   const [companies, setCompanies] = useState<CompanyPaginatedProps>();
@@ -21,6 +24,8 @@ export const CreateCompanyPage = () => {
   const [stateCompany, setStateCompany] = useState<string>('');
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [searchCompany, setSearchCompany] = useState<string>('');
+  const { user } = useUserStore();
+  const { createCompanySuccess } = useCompanyStore();
 
   const stateComplete = 
     stateCompany === 'A' 
@@ -53,10 +58,10 @@ export const CreateCompanyPage = () => {
   }, [getAllCompanies]);
 
   useEffect(() => {
-    if (!showModal) {
+    if (createCompanySuccess === true) {
       getAllCompanies();
     }
-  }, [showModal])
+  }, [createCompanySuccess]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
@@ -83,6 +88,8 @@ export const CreateCompanyPage = () => {
   const handleChangeStateCompany = (idEmpresa: number, estado: string) => {
     sigbpsApi.put('/empresas/changeStateCompany', {
       id_empresa: idEmpresa,
+      usuario_actualizacion: user.id_usuario,
+      fecha_actualizacion: formatterDateToBackend(new Date().toString()),
       estado
     })
       .then((response) => {
@@ -205,7 +212,13 @@ export const CreateCompanyPage = () => {
                     <thead>
                       <tr>
                         <th>ID</th>
+                        <th>RNC</th>
                         <th>Nombre Empresa</th>
+                        <th>Telefono</th>
+                        <th>Usuario Inserción</th>
+                        <th>Fecha Inserción</th>
+                        <th>Usuario Actualización</th>
+                        <th>Fecha Actualización</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
@@ -215,7 +228,25 @@ export const CreateCompanyPage = () => {
                         companies?.empresas.map((empresa) => (
                           <tr key={empresa.id_empresa}>
                             <td>{empresa.id_empresa}</td>
+                            <td>{empresa.rnc_empresa}</td>
                             <td>{empresa.nombre_empresa}</td>
+                            <td>{empresa.telefono_empresa}</td>
+                            <td>{empresa.usuario_insercion}</td>
+                            <td>
+                              {
+                                empresa.fecha_insercion
+                                  ? formatterDate(empresa?.fecha_insercion)
+                                  : null
+                              }
+                            </td>
+                            <td>{empresa.usuario_actualizacion}</td>
+                            <td>
+                              {
+                                empresa.fecha_actualizacion
+                                  ? formatterDate(empresa?.fecha_actualizacion)
+                                  : null
+                              }
+                            </td>
                             <td>{empresa.estado}</td>
                             <td>
                               <CustomButton
@@ -223,7 +254,7 @@ export const CreateCompanyPage = () => {
                                 placement='top'
                                 icon={<EditIcon />}
                                 color="success"
-                                style={{marginRight: '10px'}}
+                                style={{marginRight: '10px', marginBottom: '10px'}}
                                 onclick={() => {
                                   setIdEmpresa(empresa.id_empresa);
                                   setShowModal(true);

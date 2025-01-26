@@ -9,6 +9,7 @@ import { sigbpsApi } from "../api/baseApi";
 import { RequestPaginatedProps } from "../interfaces/requestInterface";
 import { formatterDate } from "../utils/formatters";
 import { CustomBasicModal } from "../components/CustomBasicModal";
+import { showRequestState } from "../utils/showRequestState";
 
 export const ConsultRequestUserPage = () => {
   const [requests, setRequests] = useState<RequestPaginatedProps>();
@@ -24,7 +25,8 @@ export const ConsultRequestUserPage = () => {
       params: {
         page: pageNumber,
         limit: 6,
-        id_usuario: localStorage.getItem('id_usuario')
+        id_usuario: localStorage.getItem('id_usuario'),
+        estado: 'A'
       }
     })
       .then((response) => {
@@ -36,6 +38,7 @@ export const ConsultRequestUserPage = () => {
       })
       .catch(() => {
         setIsLoading(false);
+        setRequests({} as RequestPaginatedProps);
       });
   }, []);
 
@@ -117,12 +120,12 @@ export const ConsultRequestUserPage = () => {
                     </thead>
                     <tbody>
                       {
-                        requests?.pedidosUser.map((pedido) => (
+                        requests?.pedidosUser?.map((pedido) => (
                           <tr key={pedido.id_usuario_pedido}>
                             <td>{pedido.id_usuario_pedido}</td>
                             <td>{pedido.descripcion_pedido}</td>
                             <td>{formatterDate(pedido.fecha_pedido)}</td>
-                            <td>{pedido.estado_pedido}</td>
+                            <td>{showRequestState(pedido.estado_pedido)}</td>
                             <td>
                               <CustomButton
                                 text='Eliminar'

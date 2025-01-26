@@ -22,9 +22,8 @@ export const DashboardPage = () => {
       .then((response) => {
         setDashboardData(response.data);
       })
-      .catch((error) => {
-        console.log(error);
-        setNoData('No hay datos para mostrar');
+      .catch(() => {
+        setNoData('No hay dashboards para mostrar');
       });
     }
   }, []);
@@ -46,6 +45,7 @@ export const DashboardPage = () => {
                           height={700}
                           width={1200}
                         ></iframe>
+                        <hr />
                       </div>
                     ))
                   ) : (

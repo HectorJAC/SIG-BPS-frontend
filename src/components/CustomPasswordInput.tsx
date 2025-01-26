@@ -28,7 +28,11 @@ export const CustomPasswordInput: FC<CustomPasswordInputProps> = ({nameLabel, pa
                     readOnly={readonly}
                     onChange={onchange}
                 />
-                <Button variant="outline-secondary" onClick={togglePasswordVisibility}>
+                <Button 
+                    variant="outline-secondary" 
+                    onClick={togglePasswordVisibility}
+                    disabled={readonly}
+                >
                     {showPassword ? 'Ocultar' : 'Mostrar'}
                 </Button>
                 </div>

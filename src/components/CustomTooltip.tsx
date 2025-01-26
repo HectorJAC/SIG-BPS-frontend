@@ -11,7 +11,14 @@ interface CustomTooltipProps {
     isButton: boolean;
 }
 
-export const CustomTooltip:FC<CustomTooltipProps> = ({text, children, placement, onClick, style, isButton}) => {
+export const CustomTooltip:FC<CustomTooltipProps> = ({
+    text, 
+    children, 
+    placement, 
+    onClick, 
+    style, 
+    isButton}
+) => {
     const renderTooltip = (props:object) => (
         <Tooltip id="button-tooltip" {...props}>
             {text}

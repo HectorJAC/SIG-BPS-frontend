@@ -38,6 +38,11 @@ export const Login = () => {
           localStorage.setItem('username', response.data.usuario.username);
           localStorage.setItem('id_usuario', response.data.usuario.id_usuario);
 
+          if (response.data.usuario.estado === 'I') {
+            toast.error(response.data.message);
+            return;
+          }
+
           if (response.data.usuario.id_rol === 2) {
             toast.success(`Bienvenido a ${response.data.empresa.nombre_empresa}`);
             setTimeout(() => {
@@ -59,10 +64,6 @@ export const Login = () => {
     
   const gotoForgetPassword = () => {
     navigate('/forget_password');
-  };
-
-  const gotoRegisterUser = () => {
-    navigate('/register');
   };
 
   return (
@@ -113,14 +114,6 @@ export const Login = () => {
                     onClick={gotoForgetPassword}
                   >
                     ¿Ha olvidado su contraseña?
-                  </Form.Text>
-
-                  <Form.Text
-                    className='text-center text-success'
-                    style={{ cursor: 'pointer' }}
-                    onClick={gotoRegisterUser}
-                  >
-                    ¿No tienes un usuario?, Crea uno
                   </Form.Text>
                 </Card.Body>
               </Card>

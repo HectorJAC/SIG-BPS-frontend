@@ -1,34 +1,33 @@
-import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
-import { Layout } from "../layout/Layout";
+import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 import { useCallback, useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { Spinner } from "../components/Spinner";
-import { CustomButton } from "../components/CustomButton";
-import { ActivateIcon, EditIcon, InactiveIcon, ViewIcon } from "../utils/iconButtons";
+import { getAllDashboards } from '../api/dashboards/getAllDashboards';
+import { DashboardKibanaProps, DashboardUserDataProps } from "../interfaces/dashboardUserDataInterface";
 import { sigbpsApi } from "../api/baseApi";
-import { ConexionDBProps } from "../interfaces/conexionDBInterface";
-import { useNavigate } from "react-router-dom";
-import { ConexionDBModal } from "../components/ConexionDBModal";
-import { useConexionDBStore } from "../store/conexionDBStore";
+import { EditIcon, ViewIcon } from "../utils/iconButtons";
+import { CustomButton } from "../components/CustomButton";
+import { formatterDate } from "../utils/formatters";
+import { Layout } from "../layout/Layout";
+import { CreateDashboardModal } from "../components/CreateDashboardModal";
 
 interface EmpresaProps {
   id_empresa: number;
   nombre_empresa: string;
 }
 
-export const ConexionDBPage = () => {
-  const navigate = useNavigate();
-  const [conexions, setConexions] = useState<ConexionDBProps>();
+export const SaveDashboardPage = () => {
+  const [dashboards, setDashboards] = useState<DashboardKibanaProps>();
+  const [dashboardInModal, setDashboardInModal] = useState<DashboardUserDataProps>();
   const [isLoading, setIsLoading] = useState(false);
+  const [searchDashboard, setSearchDashboard] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showConexionModal, setShowConexionModal] = useState(false);
-  const [selectedConexionDBId, setSelectedConexionDBId] = useState<number | null>(null);
-  const [searchConexion, seatSearchConexion] = useState<string>('');
-  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [empresas, setEmpresas] = useState<EmpresaProps[]>([]);
-
-  const { onAddConexionDB } = useConexionDBStore();
+  const [empresaSeleccionada, setEmpresaSeleccionada] = useState<number | null>(null);
+  const [idDashboardKibana, setIdDashboardKibana] = useState<number>();
 
   useEffect(() => {
     sigbpsApi.get('/empresas/findAllCompanyWithoutPagination')
@@ -40,20 +39,17 @@ export const ConexionDBPage = () => {
       });
   }, []);
 
-  const getAllConexions = useCallback((pageNumber = 1) => {
+  const allDashboards = useCallback((pageNumber = 1) => {
     setIsLoading(true);
-    sigbpsApi.get('/conexion_db/getAllConexionDb', {
-      params: {
-        page: pageNumber,
-        limit: 5
-      }
-    })
+    getAllDashboards(
+      pageNumber,
+      5
+    )
       .then((response) => {
-        setConexions(response.data);
+        setDashboards(response);
         setCurrentPage(pageNumber);
-        setTotalPages(response.data.totalPages);
+        setTotalPages(response.totalPages);
         setIsLoading(false);
-        return;
       })
       .catch(() => {
         setIsLoading(false);
@@ -61,45 +57,35 @@ export const ConexionDBPage = () => {
   }, []);
 
   useEffect(() => {
-    getAllConexions();
-  }, [getAllConexions]);
+    allDashboards();
+  }, [allDashboards]);
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      getAllConexions(currentPage - 1);
+      allDashboards(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
-      getAllConexions(currentPage + 1);
+      allDashboards(currentPage + 1);
     }
   };
 
-  const handleShowConexionModal = (id_conexion_db:number) => {
-    setSelectedConexionDBId(id_conexion_db);
-    setShowConexionModal(true);
-  };
-
-  const handleEditConexion = (id_conexion_db:number) => {
-    onAddConexionDB(id_conexion_db);
-    navigate('/create_connection_db');
-  };
-
-  const handleSearchConexion = (searchConexionParameter?: string) => {
+  const handleSearchDashboard = (searchDashboardParameter?: string) => {
     setIsLoading(true);
-    if (searchConexion === '' && searchConexionParameter === undefined) {
-      getAllConexions();
+    if (searchDashboard === '' || searchDashboardParameter === '') {
+      allDashboards();
       setIsLoading(false);  
     } else {
-      sigbpsApi.get('/conexion_db/searchConexionDb', {
+      sigbpsApi.get('/dashboard_kibana/searchDashboard', {
         params: {
-          search: searchConexion || searchConexionParameter,
+          search: searchDashboard || searchDashboardParameter,
           estado: 'A'
         }
       })
         .then((response) => {
-          setConexions(response.data);
+          setDashboards(response.data);
           setIsLoading(false);
         })
         .catch((error) => {
@@ -118,11 +104,22 @@ export const ConexionDBPage = () => {
     );
   
     if (empresaSeleccionada) {
-      handleSearchConexion(empresaSeleccionada.nombre_empresa);
+      handleSearchDashboard(empresaSeleccionada.nombre_empresa);
     } else {
-      getAllConexions();
+      allDashboards();
     }
   };
+  
+  const handleCloseModal = () => {
+    setShowEditModal(false);
+    setIdDashboardKibana(undefined);
+  };
+
+  useEffect(() => {
+    if (!showEditModal) {
+      allDashboards();
+    }
+  }, [showEditModal]);
 
   return (
     <Layout>
@@ -138,7 +135,7 @@ export const ConexionDBPage = () => {
               <Row>
                 <Col>
                   <h1 className="mt-3 mb-4">
-                    Conexiones a Base de Datos de Clientes
+                    Guardar Dashboards Creados
                   </h1>
                 </Col>
               </Row>
@@ -151,23 +148,22 @@ export const ConexionDBPage = () => {
                       marginBottom: '20px',
                       marginLeft: '20px'
                     }}
-                    onClick={() => navigate('/create_connection_db')}
+                    onClick={() => setShowEditModal(true)}
                   >
-                    Nueva Conexion
+                    Nuevo Dashboard
                   </Button>
                 </Col>
-
                 <Col md={9}>
                   <div className="input-group">
                     <Form.Control 
                       type="text" 
-                      placeholder="Buscar Conexion a Base de Datos" 
-                      value={searchConexion}
-                      onChange={(e) => seatSearchConexion(e.target.value)}
+                      placeholder="Buscar Dashboard" 
+                      value={searchDashboard}
+                      onChange={(e) => setSearchDashboard(e.target.value)}
                     />
                     <Button 
                       variant="success" 
-                      onClick={() => handleSearchConexion()}
+                      onClick={() => handleSearchDashboard()}
                     >
                       Buscar
                     </Button>
@@ -198,66 +194,68 @@ export const ConexionDBPage = () => {
                 </Col>
               </Row>
 
-              <Row>
+              <Row className="mt-3">
                 <Col>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Nombre Conexion</th>
+                        <th>Nombre Dashboard</th>
                         <th>Empresa</th>
-                        <th>Usuario DB</th>
-                        <th>Password DB</th>
+                        <th>Usuario Inserción</th>
+                        <th>Fecha Inserción</th>
+                        <th>Usuario Actualización</th>
+                        <th>Fecha Actualización</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
                       {
-                        conexions?.conexions.map((conexion) => (
-                          <tr key={conexion.id_conexion_db}>
-                            <td>{conexion.id_conexion_db}</td>
-                            <td>{conexion.nombre_conexion_db}</td>
-                            <td>{conexion.nombre_empresa}</td>
-                            <td>{conexion.conexion_user}</td>
-                            <td>{conexion.conexion_password}</td>
-                            <td>{conexion.estado}</td>
+                        dashboards?.dashboards.map((dash) => (
+                          <tr key={dash?.id_dashboard_kibana}>
+                            <td>{dash?.id_dashboard_kibana}</td>
+                            <td>{dash?.nombre_dashboard}</td>
+                            <td>{dash?.nombre_empresa}</td>
+                            <td>{dash?.usuario_insercion}</td>
+                            <td>
+                              {
+                                dash?.fecha_insercion
+                                  ? formatterDate(dash?.fecha_insercion)
+                                  : null
+                              }
+                            </td>
+                            <td>{dash?.usuario_actualizacion}</td>
+                            <td>
+                              {
+                                dash?.fecha_actualizacion
+                                  ? formatterDate(dash?.fecha_actualizacion)
+                                  : null
+                              }
+                            </td>
+                            <td>{dash?.estado}</td>
                             <td>
                               <CustomButton
                                 text='Consultar'
                                 placement='top'
                                 icon={<ViewIcon />}
                                 color="success"
-                                style={{marginRight: '10px'}}
-                                onclick={() => handleShowConexionModal(conexion.id_conexion_db!)}
+                                onclick={() => {
+                                  setDashboardInModal(dash);
+                                  setShowModal(true);
+                                }}
+                                style={{ marginRight: '5px', marginBottom: '5px' }}
                               />
                               <CustomButton
                                 text='Editar'
                                 placement='top'
                                 icon={<EditIcon />}
                                 color="success"
-                                style={{marginRight: '10px'}}
-                                onclick={() => handleEditConexion(conexion.id_conexion_db!)}
+                                onclick={() => {
+                                  setIdDashboardKibana(dash.id_dashboard_kibana);
+                                  setShowEditModal(true);
+                                }}
                               />
-                              {
-                                conexion.estado === 'A'
-                                  ? (
-                                    <CustomButton 
-                                      text='Inactivar'
-                                      placement='top'
-                                      icon={<InactiveIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                                  : (
-                                    <CustomButton 
-                                      text='Activar'
-                                      placement='top'
-                                      icon={<ActivateIcon />}
-                                      color="danger"
-                                    />
-                                  )
-                              }
                             </td>
                           </tr>
                         ))
@@ -287,10 +285,29 @@ export const ConexionDBPage = () => {
                 </Col>
               </Row>
 
-              <ConexionDBModal 
-                showModal={showConexionModal}
-                setShowModal={setShowConexionModal}
-                idConexionDB={selectedConexionDBId?.toString() || ''}
+              <Modal 
+                show={showModal} 
+                onHide={() => setShowModal(false)} 
+                size="xl"
+              >
+                <Modal.Header closeButton>
+                  <Modal.Title>{dashboardInModal?.nombre_dashboard}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <div>
+                    <iframe
+                      src={dashboardInModal?.dashboard_source}
+                      height={700}
+                      width={1100}
+                    ></iframe>
+                  </div>
+                </Modal.Body>
+              </Modal>
+
+              <CreateDashboardModal 
+                showModal={showEditModal} 
+                setShowModal={handleCloseModal}
+                idDashboardKibana={idDashboardKibana}
               />
             </Container>
           )

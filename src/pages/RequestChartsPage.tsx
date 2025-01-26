@@ -5,6 +5,7 @@ import { CustomBasicModal } from "../components/CustomBasicModal";
 import { sigbpsApi } from "../api/baseApi";
 import { ToastContainer, toast } from "react-toastify";
 import { getIdUser } from "../utils/getLocalStorageData";
+import { formatterDateToBackend } from "../utils/formatters";
 
 export const RequestChartsPage = () => {
   const [showModal, setShowModal] = useState(false);
@@ -14,7 +15,7 @@ export const RequestChartsPage = () => {
     sigbpsApi.post('/pedidos/createPedido', {
       descripcion_pedido: descRequest,
       id_usuario: getIdUser(),
-      fecha_pedido: new Date().toLocaleDateString()
+      fecha_pedido: formatterDateToBackend(new Date().toString())
     })
       .then((response) => {
         setShowModal(false);
@@ -33,14 +34,14 @@ export const RequestChartsPage = () => {
         <Row>
           <Col>
             <h1 className="mt-3 mb-4">
-              Solicitar Gráficas
+              Solicitar Gráficos
             </h1>
           </Col>
         </Row>
 
         <Row>
           <Col>
-            <h2>Digite los datos de las gráficas que requiere</h2>
+            <h2>Digite los datos de los gráficos que requiere</h2>
           </Col>
         </Row>
 

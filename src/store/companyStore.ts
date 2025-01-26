@@ -7,6 +7,11 @@ interface CompanyStoreProps {
   onSetCompany: (company: CompanyProps) => void;
   onGetCompany: () => CompanyProps;
   onClearCompany: () => void;
+
+  createCompanySuccess: boolean;
+  onCreateCompanySuccess: () => void;
+  getCreateCompanySuccess: () => boolean;
+  resetCreateCompanySuccess: () => void;
 }
 
 export const useCompanyStore = create<CompanyStoreProps>()(
@@ -16,6 +21,11 @@ export const useCompanyStore = create<CompanyStoreProps>()(
       onSetCompany: (company: CompanyProps) => set({ company }),
       onGetCompany: () => get().company,
       onClearCompany: () => set({ company: {} as CompanyProps }),
+
+      createCompanySuccess: false,
+      onCreateCompanySuccess: () => set({ createCompanySuccess: true }),
+      getCreateCompanySuccess: () => get().createCompanySuccess,
+      resetCreateCompanySuccess: () => set({ createCompanySuccess: false }),
     }),
     {
       name: 'company-store',
